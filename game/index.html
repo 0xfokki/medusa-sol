@@ -101,7 +101,7 @@ body.v2-full #medusa-game{max-width:none}
    <div class="mgx-specimen"><span>SELECTED SPECIMEN</span><strong data-specimen>—</strong><em>ONE CALL. ONE OUTCOME.</em></div>
    <footer class="mgx-bottom"><div class="mgx-cell mgx-evo"><div class="mg-progress"><div class="mg-role-icon">✧</div><div class="mg-progress-body"><div><span>YOUR EVOLUTION</span><b>BACTERIA <span>→</span> PLANKTON</b></div><div class="mg-meter"><span></span></div><small>0 / 200 PTS <span>200 TO EVOLVE</span></small></div></div></div><div class="mgx-cell"><div class="mg-stat"><span>LOCKED POTENTIAL</span><strong data-pending>0 <small>PTS</small></strong><small data-pending-caption>No open predictions</small></div></div><div class="mgx-cell mgx-you"><div class="mg-leaderboard-you">
    <div><span>YOUR RANK</span><strong data-you-rank>—</strong></div>
-   <div><span>YOUR POINTS</span><strong data-you-points>1,240</strong></div>
+   <div><span>YOUR POINTS</span><strong data-you-points>0</strong></div>
   </div></div></footer>
    <div class="mg-v2-idle-hint">Pick a jellyfish to make a prediction.</div>
    <canvas class="mg-canvas" role="img" aria-label="Glowing jellyfish, each representing a live market prediction round."></canvas>
@@ -728,7 +728,7 @@ body.v2-full #medusa-game{max-width:none}
  let selected=null,returning=null,focusAmount=0,chosenView='ocean',focusOrigin=null;
  let walkTimers=[],walkActive=false,toastTimer=0,clockPrevious=-1;
  const options={speed:1,zoom:1,showHints:true};
- const initialBank=1240;
+ const initialBank=0;   // a visitor without a wallet starts from zero (owner 2026-09-27: no demo points)
  let bank=initialBank,totalCalls=0,correctCalls=0;
  const jellies=[];
  const RESPAWN_STAGGER=ROUND_DURATION/SLOTS.length;
