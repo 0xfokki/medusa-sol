@@ -27,9 +27,17 @@ export async function getEthUsd() {
   }
 }
 
+// GMGN answers are kept ten minutes per warm instance: a connect asks for the card data,
+// the card image and the page all within seconds, and each of those was a GMGN call.
+const gmgnCache = new Map();
 export async function fetchWalletStats(address) {
+  const hit = gmgnCache.get(address);
+  if (hit && Date.now() - hit.at < 10 * 60 * 1000) return hit.v;
   const p = parseWalletStats(await gmgnGet('/v1/user/wallet_stats', { chain: 'sol', wallet_address: address, period: 'all' }));
-  return { ...p, twitter: p.twitterUsername };
+  const v = { ...p, twitter: p.twitterUsername };
+  gmgnCache.set(address, { at: Date.now(), v });
+  if (gmgnCache.size > 500) gmgnCache.delete(gmgnCache.keys().next().value);
+  return v;
 }
 
 async function readPlayerRow(address) {
@@ -67,8 +75,16 @@ export async function getCardData(address) {
     };
     source = 'player';
   } else {
-    stats = await fetchWalletStats(address);
-    source = 'gmgn';
+    // GMGN rate-limits hard (it banned the key for a while on 2026-09-27). A card must still
+    // show on first connect, so a failed lookup draws the wallet as one with no history yet,
+    // marked source 'none' so the image is cached only briefly and the real numbers follow.
+    try {
+      stats = await fetchWalletStats(address);
+      source = 'gmgn';
+    } catch {
+      stats = { balanceNative: 0, trades: 0, buys: 0, sells: 0, realizedPnlUsd: 0, roiPct: 0, winRatePct: 0, twitter: null, extra: {} };
+      source = 'none';
+    }
   }
 
   const grade = walletGrade(stats);

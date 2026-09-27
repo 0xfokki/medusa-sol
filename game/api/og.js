@@ -19,7 +19,8 @@ export default async function handler(req, res) {
     const data = await getCardData(address);
     const png = await renderCardPng(data);
     res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+    // a card drawn without GMGN (source 'none') is cached for a minute only, so the real one replaces it
+    res.setHeader('Cache-Control', data.source === 'none' ? 'public, s-maxage=60' : 'public, s-maxage=600, stale-while-revalidate=86400');
     res.status(200).end(png);
   } catch (err) {
     res.status(502).json({ error: err.message || 'Card render failed' });
