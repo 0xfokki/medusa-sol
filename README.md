@@ -163,7 +163,7 @@ PORT=4667 DATA_DIR=./.agent CHAIN_FILE=$PWD/chain-data.js node server/agent-serv
 
 It serves `/api/agent/*` (nonce, verify, me, reads). Put it behind a reverse proxy on the same host as the page. The daily quota lives in `DATA_DIR/quota.json`; the $MEDUSA holder line, once the mint exists, goes in `DATA_DIR/agent-token.json`.
 
-**The game** lives in [`game/`](game/) and deploys to Vercel on its own. See [`game/README.md`](game/README.md).
+**The game** lives in [`game/`](game/) and deploys to Vercel on every push that touches it. See [`game/README.md`](game/README.md).
 
 ### What it costs to run
 

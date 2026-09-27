@@ -19,7 +19,7 @@ score = lifetime_points   (resolved prediction wins)
   with another build. Schema: `supabase/SOL-ALL-IN-ONE.sql` (idempotent, run in
   the SQL editor).
 
-Deploy: `vercel --prod` from this folder (project `medusa-sol`). Environment
-variables are listed in `.env.example`.
+Deploy: push to `main`. Vercel (project `medusa-sol`, root directory `game`) builds
+only when something under `game/` changed. Environment variables are listed in `.env.example`.
 
 Solana addresses are base58 and case-sensitive: never lowercase a wallet or a mint.
