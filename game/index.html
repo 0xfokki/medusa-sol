@@ -1955,6 +1955,12 @@ body.v2-full{background:#04070a}
 #medusa-game .door.fomo{background:linear-gradient(90deg,#3b1fd6,#6a3cff);color:#fff;border-color:transparent}
 #medusa-game .door.fomo .f{width:20px;height:20px;border-radius:50%;display:block;object-fit:cover;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 #medusa-game .door.dark{background:#0f1a17}
+/* the pump.fun button carries an icon and the longest label: give it the widest column and keep
+   the icon inside the pill (it was pushed past the left edge when the label did not fit) */
+#medusa-game .doors{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr) minmax(0,1fr)}
+#medusa-game .door{min-width:0;white-space:nowrap;overflow:hidden}
+#medusa-game .door.fomo img{width:18px!important;height:18px!important;flex:none}
+@media (max-width:1100px){ #medusa-game .door i{display:none} #medusa-game .door{padding:10px 8px;font-size:12px;gap:5px} }
 
 /* selected specimen, left, only while a jellyfish is open */
 #medusa-game .mgx-specimen{position:absolute;left:48px;top:118px;z-index:3;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s}
