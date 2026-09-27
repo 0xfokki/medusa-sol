@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>MEDUSA — admin</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: #05070c; color: #e8f4ff;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex; align-items: flex-start; justify-content: center; padding: 48px 16px;
+  }
+  .wrap { width: 100%; max-width: 720px; }
+  h1 { font-size: 20px; letter-spacing: 0.04em; margin: 0 0 4px; }
+  .sub { color: #7d93aa; font-size: 13px; margin: 0 0 28px; }
+  .card {
+    background: rgba(20, 30, 44, 0.55); border: 1px solid rgba(120, 200, 255, 0.14);
+    border-radius: 14px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(8px);
+  }
+  label { display: block; font-size: 12px; color: #8fa8c0; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  input, textarea {
+    width: 100%; background: #0b131e; border: 1px solid rgba(120, 200, 255, 0.2); color: #e8f4ff;
+    border-radius: 8px; padding: 10px 12px; font-size: 14px; margin-bottom: 14px; font-family: inherit;
+  }
+  textarea { font-family: ui-monospace, monospace; font-size: 13px; resize: vertical; min-height: 120px; }
+  input:focus, textarea:focus { outline: none; border-color: #4fd1ff; }
+  button {
+    background: linear-gradient(135deg, #2fd8ff, #4f7bff); color: #05070c; border: none;
+    border-radius: 8px; padding: 11px 18px; font-weight: 700; font-size: 14px; cursor: pointer; letter-spacing: 0.02em;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+  button.ghost { background: transparent; border: 1px solid rgba(255,90,90,0.4); color: #ff8080; font-weight: 500; padding: 6px 12px; font-size: 12px; }
+  button.secondary { background: transparent; border: 1px solid rgba(120,200,255,0.3); color: #9fc4e0; font-weight: 500; }
+  .msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .msg.err { color: #ff8080; }
+  .msg.ok { color: #6bf0a0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid rgba(120,200,255,0.1); vertical-align: middle; }
+  th { color: #7d93aa; font-weight: 500; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+  td.addr { font-family: ui-monospace, monospace; font-size: 11px; color: #9fc4e0; }
+  td input { margin: 0; padding: 6px 8px; font-size: 13px; }
+  tr.is-error td { color: #ff8080; }
+  tr.is-error td.addr { color: #ff8080; }
+  .row-actions { display: flex; gap: 10px; margin-top: 4px; }
+  #gate { }
+  #panel { display: none; }
+  #preview { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MEDUSA · admin</h1>
+  <p class="sub">Пул токенов Robinhood Chain для игры</p>
+
+  <div id="gate" class="card">
+    <label>Пароль</label>
+    <input id="pw" type="password" placeholder="admin password" autocomplete="current-password" />
+    <button id="loginBtn">Войти</button>
+    <div id="gateMsg" class="msg err"></div>
+  </div>
+
+  <div id="panel">
+    <div class="card">
+      <label>Адреса контрактов (по одному на строку)</label>
+      <textarea id="addrList" placeholder="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"></textarea>
+      <button id="resolveBtn">Определить токены</button>
+      <div id="resolveMsg" class="msg"></div>
+    </div>
+
+    <div class="card" id="preview">
+      <p class="sub" style="margin-bottom:12px">Проверь тикер/название — можно поправить вручную. Строки с ошибкой (адрес не найден в сети) не сохранятся.</p>
+      <table>
+        <thead><tr><th></th><th>Адрес</th><th>Тикер</th><th>Название</th><th>Glyph</th></tr></thead>
+        <tbody id="previewRows"></tbody>
+      </table>
+      <div class="row-actions">
+        <button id="saveBtn">Сохранить выбранные</button>
+        <button class="secondary" id="cancelPreview" type="button">Отмена</button>
+      </div>
+      <div id="saveMsg" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="sub" style="margin-bottom:10px">Текущий пул</div>
+      <table>
+        <thead><tr><th>Тикер</th><th>Название</th><th>Адрес</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  let pw = '';
+  const gate = document.getElementById('gate');
+  const panel = document.getElementById('panel');
+  const gateMsg = document.getElementById('gateMsg');
+  const resolveMsg = document.getElementById('resolveMsg');
+  const saveMsg = document.getElementById('saveMsg');
+  const rowsEl = document.getElementById('rows');
+  const previewEl = document.getElementById('preview');
+  const previewRows = document.getElementById('previewRows');
+
+  async function api(method, path, body) {
+    const r = await fetch('/api/admin' + path, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (r.status === 401) throw new Error('unauthorized');
+    let data = null;
+    try { data = await r.json(); } catch (e) {}
+    if (!r.ok) throw new Error(data?.error || ('HTTP ' + r.status));
+    return data;
+  }
+
+  async function loadList() {
+    const list = await api('GET', '/tokens');
+    rowsEl.innerHTML = '';
+    for (const t of list) {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + esc(t.coin_glyph) + ' ' + esc(t.symbol) + '</td>' +
+        '<td>' + esc(t.name) + '</td>' +
+        '<td class="addr">' + esc(t.address) + '</td>' +
+        '<td><button class="ghost" data-id="' + esc(t.id) + '">удалить</button></td>';
+      rowsEl.appendChild(tr);
+    }
+    rowsEl.querySelectorAll('button.ghost').forEach((b) => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Удалить ' + b.closest('tr').children[0].textContent + '?')) return;
+        await api('DELETE', '/tokens?id=' + encodeURIComponent(b.dataset.id));
+        loadList();
+      });
+    });
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    pw = document.getElementById('pw').value;
+    gateMsg.textContent = '';
+    try {
+      await loadList();
+      gate.style.display = 'none';
+      panel.style.display = 'block';
+      sessionStorage.setItem('medusa-admin-pw', pw);
+    } catch (e) {
+      gateMsg.textContent = 'Неверный пароль';
+    }
+  });
+
+  document.getElementById('resolveBtn').addEventListener('click', async () => {
+    const addresses = document.getElementById('addrList').value
+      .split('\n').map((s) => s.trim()).filter(Boolean);
+    if (!addresses.length) return;
+    resolveMsg.className = 'msg';
+    resolveMsg.textContent = 'Определяю через сеть...';
+    try {
+      const results = await api('POST', '/resolve', { addresses });
+      previewRows.innerHTML = '';
+      for (const r of results) {
+        const tr = document.createElement('tr');
+        if (r.ok) {
+          tr.innerHTML =
+            '<td><input type="checkbox" checked class="incl"></td>' +
+            '<td class="addr">' + esc(r.address) + '</td>' +
+            '<td><input class="f-symbol" value="' + esc(r.symbol) + '"></td>' +
+            '<td><input class="f-name" value="' + esc(r.name) + '"></td>' +
+            '<td><input class="f-glyph" value="' + esc(r.coin_glyph) + '" maxlength="4" style="width:50px"></td>';
+        } else {
+          tr.classList.add('is-error');
+          tr.innerHTML =
+            '<td><input type="checkbox" class="incl" disabled></td>' +
+            '<td class="addr">' + esc(r.address) + '</td>' +
+            '<td colspan="3">' + esc(r.error || 'не найден') + '</td>';
+        }
+        tr.dataset.address = r.address;
+        previewRows.appendChild(tr);
+      }
+      previewEl.style.display = 'block';
+      resolveMsg.textContent = '';
+    } catch (e) {
+      resolveMsg.className = 'msg err';
+      resolveMsg.textContent = e.message;
+    }
+  });
+
+  document.getElementById('cancelPreview').addEventListener('click', () => {
+    previewEl.style.display = 'none';
+    previewRows.innerHTML = '';
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const toSave = [];
+    previewRows.querySelectorAll('tr').forEach((tr) => {
+      const incl = tr.querySelector('.incl');
+      if (!incl || incl.disabled || !incl.checked) return;
+      toSave.push({
+        address: tr.dataset.address,
+        symbol: tr.querySelector('.f-symbol').value,
+        name: tr.querySelector('.f-name').value,
+        coin_glyph: tr.querySelector('.f-glyph').value,
+      });
+    });
+    if (!toSave.length) return;
+    saveMsg.className = 'msg';
+    saveMsg.textContent = '';
+    try {
+      await api('POST', '/tokens', toSave);
+      saveMsg.className = 'msg ok';
+      saveMsg.textContent = 'Сохранено: ' + toSave.length;
+      previewEl.style.display = 'none';
+      previewRows.innerHTML = '';
+      document.getElementById('addrList').value = '';
+      loadList();
+    } catch (e) {
+      saveMsg.className = 'msg err';
+      saveMsg.textContent = e.message;
+    }
+  });
+
+  (async () => {
+    const saved = sessionStorage.getItem('medusa-admin-pw');
+    if (saved) {
+      pw = saved;
+      try {
+        await loadList();
+        gate.style.display = 'none';
+        panel.style.display = 'block';
+      } catch (e) {
+        sessionStorage.removeItem('medusa-admin-pw');
+      }
+    }
+  })();
+</script>
+</body>
+</html>

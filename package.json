@@ -1,0 +1,30 @@
+{
+  "name": "medusa-sol",
+  "version": "1.0.0",
+  "description": "A lie detector for the crowd. People feed it thoughts, Solana (pump.fun) feeds it trades, and it shows where the crowd words and its money agree or do not.",
+  "main": "daily-data.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pull": "node scripts/pull-chain.mjs && node scripts/read-chain.mjs && node scripts/pull-daily.mjs",
+    "serve": "npx serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xfokki/medusa-sol.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/0xfokki/medusa-sol/issues"
+  },
+  "homepage": "https://medusa.cash",
+  "dependencies": {
+    "@solana/web3.js": "^1.99.0",
+    "bs58": "^6.0.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

@@ -1,0 +1,15 @@
+node_modules/
+package-lock.json
+.st-profile/
+.dex-profile/
+.eoa-cache*.json
+.x-key
+/api/
+.deploy
+.daily.log
+launch.js
+eoa-cache.json
+api.html
+scripts/build-api.mjs
+.helius-key
+.sol-cache.json

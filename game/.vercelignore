@@ -1,0 +1,4 @@
+supabase
+*.md
+.env*
+AGENT_ONBOARDING_MESSAGE.txt

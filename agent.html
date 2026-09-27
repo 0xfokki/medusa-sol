@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEDUSA agent - read any coin</title>
+<meta name="description" content="The MEDUSA agent, for holders: a live console, the API with your own key, and the token board. Sign in with your wallet.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#090c0a; --surface:#131714; --panel:#161b17; --panel2:#1b221d; --panel3:#222a24;
+  --term-bg:#0c0f0d;
+  --border:#2b352e; --divider:#232b25; --border-hover:#3d4c42;
+  --bone:#e8edf4; --mist:#8b9bb0; --ash:#8b9bb0; --dim:#7b8ca3;
+  --accent:#86efac; --medusa:#86efac; --medusa-muted:#6a7a31; --sell:#9aa8b8;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"DM Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+  --display:"Archivo","Arial Narrow",Impact,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--void);scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--void);color:var(--bone);font-family:var(--sans);font-weight:300;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ash)}
+
+/* ---------- nav: the same bar as the site ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:40;padding:22px 0;background:linear-gradient(#000 0%,rgba(0,0,0,.72) 60%,transparent)}
+.navInner{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:.2em;font-size:13px}
+.links{display:flex;gap:26px;margin-left:auto}
+.links a{color:var(--ash);font-size:14px;transition:color .2s}
+.links a:hover,.links a.on{color:var(--bone)}
+.links a.play{color:var(--medusa)}
+.links a.play:hover{color:var(--bone)}
+.social{display:flex;align-items:center;gap:8px;margin-left:8px}
+.soc{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--ash);transition:color .2s,border-color .2s,background .2s,box-shadow .2s}
+.soc svg{width:15px;height:15px;fill:currentColor}
+.soc:hover{color:var(--bone);border-color:var(--medusa);background:rgba(134,239,172,.08);box-shadow:0 0 0 4px rgba(134,239,172,.08)}
+.soc[hidden]{display:none}
+.pill{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:var(--accent);color:#172105;font:inherit;font-weight:500;font-size:15px;padding:14px 26px;cursor:pointer;white-space:nowrap;transition:filter .2s,transform .2s}
+.pill:hover{filter:brightness(.88)} .pill:active{transform:scale(.97)}
+.pill.small{padding:10px 18px;font-size:13px}
+.pill[disabled]{opacity:.5;cursor:default;filter:none;transform:none}
+.navCta{margin-left:14px;gap:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.navCta .short{display:none}
+.burger{display:none;width:40px;height:40px;margin-left:8px;padding:0;border:0;background:none;cursor:pointer;position:relative;flex:none;border-radius:50%}
+.burger i{position:absolute;left:11px;width:18px;height:1.5px;background:var(--bone);transition:transform .25s,opacity .2s}
+.burger i:first-child{top:16px} .burger i:last-child{top:23px}
+body.menu .burger i:first-child{transform:translateY(3.5px) rotate(45deg)}
+body.menu .burger i:last-child{transform:translateY(-3.5px) rotate(-45deg)}
+.sheet{position:fixed;inset:0;z-index:39;background:var(--void);display:flex;flex-direction:column;justify-content:center;padding:80px 24px 36px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+body.menu .sheet{opacity:1;visibility:visible}
+body.menu{overflow:hidden}
+.sheetLinks{display:flex;flex-direction:column;margin-bottom:28px}
+.sheet .item{display:flex;align-items:baseline;gap:16px;padding:16px 0;border-top:1px solid var(--border);font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:34px;line-height:1;color:var(--bone)}
+.sheet .item:last-child{border-bottom:1px solid var(--border)}
+.sheet .item small{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.2em;color:var(--medusa);width:30px;flex:none}
+.sheet .pill{align-self:stretch}
+.sheetFoot{margin-top:auto;color:var(--dim);text-transform:none;letter-spacing:.04em;font-size:11px}
+
+/* ---------- head ---------- */
+.head{padding-top:150px;padding-bottom:30px;position:relative;z-index:0}
+@media (min-width:901px){ body:not(.open) .head{min-height:900px} body.open .head{min-height:700px} }
+.jelly{position:absolute;right:-60px;top:60px;width:min(48%,660px);height:820px;pointer-events:none;z-index:-1}
+.head>*:not(.jelly){position:relative;z-index:1}
+.rule{display:flex;align-items:baseline;gap:18px;border-top:1px solid var(--border);padding-top:18px;margin:0 0 44px}
+.rule .num{font-family:var(--display);font-weight:800;font-stretch:64%;font-size:clamp(34px,3.4vw,48px);line-height:.8;color:transparent;-webkit-text-stroke:1.2px var(--medusa)}
+.rule h3{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--bone);margin:0}
+.rule .r{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);display:inline-flex;align-items:center;gap:8px}
+.live{width:7px;height:7px;border-radius:50%;background:var(--medusa);box-shadow:0 0 0 0 rgba(134,239,172,.6);animation:live 2.2s ease-out infinite}
+@keyframes live{70%{box-shadow:0 0 0 9px rgba(134,239,172,0)}100%{box-shadow:0 0 0 0 rgba(134,239,172,0)}}
+h1{font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:clamp(42px,4.9vw,66px);line-height:.94;letter-spacing:-.005em;word-spacing:.06em;margin:0 0 22px}
+h1 .soft{color:var(--medusa)}
+.lede{color:var(--mist);font-size:18px;max-width:60ch;margin:0}
+.lede b{color:var(--bone);font-weight:500}
+
+/* ---------- terminal frame, the site's own ---------- */
+
+/* ---------- the gate ---------- */
+.gate{margin-top:40px;max-width:720px}
+.accessLog{min-height:52px;display:flex;flex-direction:column;gap:7px;font-family:var(--mono);font-size:12.5px;line-height:1.6}
+.gateActs{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:22px}
+.gateActs .pill span{font-size:10px;margin-right:9px}
+.gateHint{font-size:13px;color:var(--dim)}
+.gateHint b{color:var(--sell);font-weight:400}
+.gateHint a{color:var(--medusa);border-bottom:1px solid rgba(134,239,172,.4);margin-left:4px}
+.gate .ask{margin-top:22px}
+.keyBox{margin-top:16px;max-width:620px;border:1px solid rgba(134,239,172,.35);border-radius:12px;padding:16px 18px;background:linear-gradient(180deg,rgba(134,239,172,.06),rgba(134,239,172,.015))}
+.keyBox p{margin:0 0 12px;color:var(--mist);font-size:14px}
+.keyBox p b{color:var(--bone);font-weight:500}
+.keyBox .keyFoot{margin:10px 0 0;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.keyBox p a{color:var(--medusa);border-bottom:1px solid rgba(134,239,172,.4)}
+.keyBox form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.keyBox input{font-family:var(--mono);font-size:13px;color:var(--bone);background:var(--term-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;outline:0}
+.keyBox input:focus{border-color:var(--medusa)}
+.linkBtn{background:none;border:0;padding:0;font:inherit;font-weight:500;color:var(--medusa);cursor:pointer;border-bottom:1px solid rgba(134,239,172,.5)}
+.linkBtn:hover{color:var(--bone);border-bottom-color:var(--bone)}
+body.open .gateActs{display:none}
+.al{color:var(--ash);white-space:pre-wrap;overflow:hidden;animation:termin .35s ease-out}
+.al .p{color:var(--medusa)} .al .c{color:var(--bone)} .al .d{color:var(--dim)} .al .ok{color:var(--bone)}
+.al .lock{background:var(--medusa);color:#172105;padding:1px 8px;font-weight:500;letter-spacing:.14em;animation:lockblink .5s steps(1) 4}
+.al .no{background:var(--sell);color:#172105;padding:1px 8px;font-weight:500;letter-spacing:.14em}
+.al .open{background:var(--medusa);color:#172105;padding:1px 8px;font-weight:500;letter-spacing:.14em}
+.al.cur::after{content:"▍";color:var(--medusa);animation:caret .7s steps(1) infinite}
+@keyframes lockblink{50%{opacity:.25}}
+@keyframes caret{50%{opacity:0}}
+@keyframes termin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lockRow{display:flex;align-items:center;justify-content:space-between;gap:20px 40px;flex-wrap:wrap;margin-top:22px;padding-top:20px;border-top:1px solid var(--divider);font-family:var(--sans)}
+.lockMsg b{display:flex;align-items:center;gap:12px;font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:clamp(24px,2.4vw,34px);line-height:1;color:var(--bone)}
+.ghost{font-size:14px;color:var(--ash);border-bottom:1px solid var(--border);padding-bottom:2px;transition:color .2s,border-color .2s;background:none;border-top:0;border-left:0;border-right:0;cursor:pointer;padding-top:0;padding-left:0;padding-right:0}
+.ghost:hover{color:var(--bone);border-bottom-color:var(--medusa)}
+
+/* ---------- open: the three rooms ---------- */
+body:not(.open) .gated{display:none!important}
+.body{padding-top:10px;padding-bottom:80px}
+.room{max-width:900px}
+.boardHead{margin:36px 0 6px!important}
+.boardNote{color:var(--mist);font-size:14px;margin:0 0 14px}
+section.room{padding:0 0 56px}
+.room h2{font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:clamp(28px,3vw,40px);line-height:.95;letter-spacing:-.005em;word-spacing:.06em;margin:18px 0 10px}
+.room h2 .soft{color:var(--dim)}
+.room p{color:var(--mist);max-width:70ch;margin:0 0 14px}
+.room p b{color:var(--bone);font-weight:500}
+.room p code,.ic{font-family:var(--mono);font-size:12px;color:var(--bone);background:rgba(255,255,255,.04);border:1px solid var(--divider);border-radius:4px;padding:1px 6px}
+
+/* the read: one ticker in, her whole read out */
+.ask{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;max-width:560px;margin:18px 0 8px}
+.ask input{font-family:var(--mono);font-size:15px;color:var(--bone);background:var(--term-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;outline:0;letter-spacing:.02em}
+.ask input::placeholder{text-transform:none;letter-spacing:0;color:var(--dim)}
+.ask input:focus{border-color:var(--medusa)}
+.ask .pill{padding:0 24px}
+.ask .pill[disabled]{opacity:.55}
+.quotaLine{font-size:15px;color:var(--mist);margin:14px 0 6px}
+.quotaLine b{color:var(--bone);font-weight:500}
+.quotaLine b.on{color:var(--medusa)} .quotaLine b.off{color:var(--sell)}
+.askNote{font-family:var(--mono);font-size:13px;color:var(--ash);letter-spacing:.04em;margin:0 0 6px}
+.readCard{border:1px solid var(--border);border-radius:17px;background:var(--panel);overflow:hidden;margin-top:8px}
+.rcHead{display:flex;align-items:baseline;gap:14px 18px;flex-wrap:wrap;padding:22px 26px 0}
+.rcHead b{font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:clamp(30px,3.2vw,44px);line-height:.9;color:var(--bone)}
+.rcHead .nm{color:var(--mist);font-size:14px}
+.rcHead .dots i{font-style:normal;animation:dot 1.2s steps(1) infinite;opacity:0}
+.rcHead .dots i:nth-child(2){animation-delay:.4s} .rcHead .dots i:nth-child(3){animation-delay:.8s}
+@keyframes dot{0%{opacity:0}33%{opacity:1}100%{opacity:1}}
+.rcHead .lk{margin-left:auto;display:flex;gap:16px}
+.rcSteps{padding:26px;font-family:var(--mono);font-size:12.5px;color:var(--ash);display:flex;flex-direction:column;gap:8px}
+.rcSteps div{display:flex;gap:12px;align-items:center;opacity:.45}
+.rcSteps div.on{opacity:1;color:var(--bone)} .rcSteps div.done{opacity:.8}
+.rcSteps i{width:7px;height:7px;border-radius:50%;background:var(--border);flex:none}
+.rcSteps div.on i{background:var(--medusa);box-shadow:0 0 0 0 rgba(134,239,172,.6);animation:live 1.4s ease-out infinite}
+.rcSteps div.done i{background:var(--medusa)}
+.rcVerdict{display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr);gap:8px 28px;align-items:center;padding:22px 26px;margin-top:18px;border-top:1px solid var(--divider);
+  background:linear-gradient(180deg,rgba(134,239,172,.07),rgba(134,239,172,.015))}
+.rcScore{font-family:var(--display);font-weight:800;font-stretch:64%;font-size:clamp(56px,6vw,84px);line-height:.85;letter-spacing:-.01em;color:var(--dim)}
+.rcScore.l2{color:var(--medusa);text-shadow:0 0 28px rgba(134,239,172,.35)} .rcScore.l1{color:#d6e98a} .rcScore.l0{color:var(--dim)} .rcScore.l-1{color:#b7c2cc} .rcScore.l-2{color:var(--sell)}
+.meter{display:flex;gap:3px;margin-top:12px;width:100%}
+.meter i{flex:1;height:5px;background:var(--border);border-radius:1px}
+.meter i.on{background:currentColor}
+.rcGrade{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:500;padding:5px 12px;color:#172105;background:var(--medusa)}
+.rcGrade.l1{background:#d6e98a} .rcGrade.l0{background:var(--border);color:var(--bone)} .rcGrade.l-1{background:#b7c2cc} .rcGrade.l-2{background:var(--sell)}
+.rcCav{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.rcCav span{font-family:var(--mono);font-size:11px;color:var(--ash);border:1px solid var(--border);border-radius:999px;padding:3px 10px}
+.rcTag{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rcTag .t{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#172105;background:var(--medusa);padding:4px 10px;font-weight:500}
+.rcTag .t.dn{background:var(--sell)} .rcTag .t.dim{background:var(--border);color:var(--bone)}
+.rcTag .run{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--medusa);border:1px solid rgba(134,239,172,.5);padding:3px 10px;border-radius:999px}
+.rcLine{font-size:18px;color:var(--bone);margin-top:6px}
+.rcLine small{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em;margin-top:6px}
+.rcMarket{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--divider);border-top:1px solid var(--divider);border-bottom:1px solid var(--divider)}
+.rcMarket div{background:var(--panel);padding:14px 18px}
+.rcMarket b{display:block;font-family:var(--mono);font-weight:400;font-size:17px;color:var(--bone)}
+.rcMarket b.up{color:var(--medusa)} .rcMarket b.dn{color:var(--sell)}
+.rcMarket span{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.rcCols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}
+.rcCol{padding:22px 26px}
+.rcCol+.rcCol{border-left:1px solid var(--divider)}
+.rcCol h4{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--bone);margin:0 0 4px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rcCol h4 small{color:var(--dim);letter-spacing:.04em;text-transform:none;font-weight:400;margin-left:auto}
+.bar{height:8px;background:rgba(255,255,255,.06);position:relative;margin:14px 0 10px;border-radius:2px;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;left:0;background:var(--medusa)}
+.bar i.r{left:auto;right:0;background:var(--sell)}
+.split{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--ash)}
+.split b{color:var(--bone);font-weight:500}
+.split .r b{color:var(--sell)}
+.kv{font-family:var(--mono);font-size:12px;color:var(--ash);display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:14px}
+.kv b{color:var(--bone);font-weight:400}
+.kv a{color:var(--medusa);border-bottom:1px solid rgba(134,239,172,.35)}
+.posts{display:flex;flex-direction:column;margin-top:14px}
+.post{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:12px 8px;margin:0 -8px;border-top:1px solid var(--divider);border-radius:8px;transition:background .15s}
+.post:hover{background:rgba(134,239,172,.06);box-shadow:inset 0 0 0 1px rgba(134,239,172,.35);transform:translateY(-2px)}
+.post{transition:background .15s,box-shadow .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
+/* the read, in motion: score counts up, bars and meter fill, tags stamp, market cells sweep, posts cascade */
+.bar i{transform-origin:left}.bar i.r{transform-origin:right}
+.play .bar i{animation:rBarIn 1s .35s cubic-bezier(.2,.8,.2,1) backwards}
+.play .meter i.on{animation:rMeterOn .5s 1s cubic-bezier(.2,.8,.2,1) backwards;transform-origin:left}
+.play .rcTag>span{animation:rStamp .4s .7s cubic-bezier(.2,.8,.2,1) backwards}
+.play .rcTag>span:nth-child(2){animation-delay:.85s}.play .rcTag>span:nth-child(3){animation-delay:1s}
+.play .rcLine,.play .rcCav{animation:rFade .7s 1s ease backwards}
+.play .rcMarket div{animation:rFade .5s calc(.5s + var(--i,0)*.06s) ease backwards,rSweep 5.4s calc(1.8s + var(--i,0)*.42s) ease-in-out infinite}
+.play .post{animation:rPostIn .45s var(--d,.4s) cubic-bezier(.2,.8,.2,1) backwards}
+.play .rcScore.l2 .n,.play .rcScore.l1 .n{animation:rGlow 1.4s .2s ease-out}
+.play .kv>*{animation:rFade .5s .9s ease backwards}
+@keyframes rBarIn{from{transform:scaleX(0)}}
+@keyframes rMeterOn{from{transform:scaleX(0);opacity:.3}}
+@keyframes rStamp{from{transform:scale(1.18);opacity:0}}
+@keyframes rFade{from{opacity:0;transform:translateY(6px)}}
+@keyframes rPostIn{from{opacity:0;transform:translateY(10px)}}
+@keyframes rGlow{0%{text-shadow:0 0 0 rgba(134,239,172,0)}45%{text-shadow:0 0 42px rgba(134,239,172,.75)}100%{text-shadow:0 0 28px rgba(134,239,172,.35)}}
+@keyframes rSweep{0%,9%,100%{background:var(--panel);filter:none;box-shadow:none}4%{background:rgba(134,239,172,.09);filter:brightness(1.3);box-shadow:inset 0 1px 0 rgba(134,239,172,.6)}}
+@media (prefers-reduced-motion:reduce){.play *{animation:none!important}.post:hover{transform:none}}
+.post:hover p{color:var(--bone)}
+.post img,.post .noav{width:34px;height:34px;border-radius:50%;background:var(--panel3);object-fit:cover}
+.post .who{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:13px}
+.post .who b{color:var(--bone);font-weight:500}
+.post .who span{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.post .who .sd{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--medusa)}
+.post .who .sd.bear{color:var(--sell)} .post .who .sd.none{color:var(--dim)}
+.post p{margin:6px 0 0;font-size:14px;color:var(--mist);line-height:1.5}
+.post p .op{color:var(--dim);font-family:var(--mono);font-size:11px;margin-left:6px;border-bottom:1px solid var(--border)}
+.post:hover p .op{color:var(--medusa);border-bottom-color:var(--medusa)}
+.rcEmpty{color:var(--dim);font-size:14px;margin-top:14px}
+.rcErr{padding:22px 26px;color:var(--sell);font-family:var(--mono);font-size:13px}
+.choose{padding:0 0 8px}
+.choose .why{padding:14px 26px 6px;color:var(--mist);font-size:14px}
+.choose .why b{color:var(--bone);font-weight:500}
+.choose .opt{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 90px 90px 70px;gap:12px;align-items:center;padding:12px 26px;border-top:1px solid var(--divider);cursor:pointer;font-family:var(--mono);font-size:12.5px;color:var(--ash);transition:background .15s}
+.choose .opt:hover{background:rgba(134,239,172,.05)}
+.choose .opt b{color:var(--bone);font-weight:500;display:block;font-family:var(--sans);font-size:14px}
+.choose .opt .ca{color:var(--dim);word-break:break-all}
+.choose .opt .go{text-align:right;color:var(--medusa)}
+.choose .hd{cursor:default;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)} .choose .hd:hover{background:none}
+@media (max-width:900px){ .choose .opt{grid-template-columns:minmax(0,1fr) 80px 60px} .choose .opt>:nth-child(2),.choose .opt>:nth-child(4){display:none} }
+@media (max-width:900px){ .rcCols{grid-template-columns:1fr} .rcCol+.rcCol{border-left:0;border-top:1px solid var(--divider)} .rcVerdict{grid-template-columns:1fr} }
+@media (max-width:520px){ .ask{grid-template-columns:1fr} .rcHead,.rcCol,.rcVerdict{padding-left:18px;padding-right:18px} }
+
+
+
+.board{border:1px solid var(--border);border-radius:8px;overflow:hidden;font-family:var(--mono);font-size:12.5px}
+.board .row{display:grid;grid-template-columns:110px 90px 100px 110px 1fr 70px;gap:12px;padding:10px 16px;border-top:1px solid var(--divider);align-items:center;cursor:pointer;transition:background .15s}
+.board .row:hover{background:rgba(255,255,255,.025)}
+.board .row:first-child{border-top:0;cursor:default;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.02)}
+.board .row:first-child:hover{background:rgba(255,255,255,.02)}
+.board .sym{color:var(--bone);font-weight:500}
+.board .t{font-size:10px;letter-spacing:.1em;color:var(--dim)}
+.board .t.run{color:var(--medusa)}
+.board .sc{text-align:right;color:var(--bone)} .board .sc.dn{color:var(--sell)}
+.board .empty{padding:18px 16px;color:var(--dim)}
+
+.foot{height:40px}
+
+@media (max-width:900px){
+  .links{display:none} .nav .social{display:none} .burger{display:block}
+  .navCta{margin-left:auto;padding:9px 16px;font-size:12px}
+  .navCta .full{display:none} .navCta .short{display:inline}
+  .jelly{display:none}
+  .board .row{grid-template-columns:90px 80px 1fr 60px} .board .row>:nth-child(3),.board .row>:nth-child(4){display:none}
+}
+@media (max-width:520px){
+  .wrap{padding-left:16px;padding-right:16px}
+  .head{padding-top:110px}
+  h1{font-size:11vw}
+  .termscreen{padding:18px 16px}
+}
+
+@media (max-width:900px){ .nav{background:rgba(6,8,7,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)} .navCta{margin-left:auto} }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap navInner">
+    <a class="brand" href="/">MEDUSA</a>
+    <nav class="links">
+      <a class="on" href="/agent">The agent</a><a href="/#daily">Daily read</a><a href="/#tops">On-chain</a><a href="/#verdict-section">The verdict</a><a class="play" href="https://game.medusa.cash/" target="_blank" rel="noopener">Play the game</a>
+    </nav>
+    <div class="social">
+      <a class="soc" href="https://x.com/0x_fokki" target="_blank" rel="noopener" aria-label="MEDUSA on X" title="MEDUSA on X">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-7.2 8.3L23 22h-6.6l-5.2-6.8L5.3 22H2.1l7.7-8.8L1.7 2h6.8l4.7 6.2L18.9 2zm-1.2 18h1.8L7.4 3.9H5.5L17.7 20z"/></svg>
+      </a>
+      <a class="soc" id="navGit" href="#" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.9 10.9c.6.1.8-.2.8-.5v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.6.8.5A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg></a>
+    </div>
+    <a class="pill small navCta" href="/agent"><span class="full">MEDUSA AI</span><span class="short">AI</span></a>
+    <button class="burger" id="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="sheet"><i></i><i></i></button>
+  </div>
+</header>
+<div class="sheet" id="sheet" aria-hidden="true">
+  <nav class="sheetLinks">
+    <a class="item" href="https://game.medusa.cash/" target="_blank" rel="noopener"><small>&#9654;</small>Play the game</a>
+    <a class="item" href="/agent"><small>01</small>The agent</a>
+    <a class="item" href="/#daily"><small>02</small>Daily read</a>
+    <a class="item" href="/#tops"><small>03</small>On-chain</a>
+    <a class="item" href="/#verdict-section"><small>04</small>The verdict</a>
+  </nav>
+  <a class="pill" href="#gate">Sign in with wallet</a>
+  <div class="sheetFoot mono">reads what retail says against what it trades on Solana</div>
+</div>
+
+<div class="wrap head">
+  <canvas class="jelly" id="jelly" aria-hidden="true"></canvas>
+  <h1>Read any coin.<br><span class="soft">Before the crowd does.</span></h1>
+  <p class="lede">The same MEDUSA that reads the page, with the lock off: <b>type any Solana ticker or mint</b> and get her read, the last hour of wallets against what X liked, <b>one score</b>. The seat belongs to a wallet. Sign a message to take it. <b>No transaction, no gas.</b></p>
+
+  <div class="gate" id="gate">
+    <div class="accessLog" id="accessLog" aria-live="polite"></div>
+    <div class="gateActs">
+      <button class="pill" type="button" id="connect"><span>&#9679;</span>Connect wallet</button>
+      <a class="ghost" id="mmLink" href="https://phantom.app/ul/browse/https%3A%2F%2Fmedusa.cash%2Fagent?ref=https%3A%2F%2Fmedusa.cash" hidden>Open in Phantom ↗</a>
+      <span class="gateHint" id="lockSub">Any wallet · a signature, not a transaction · no gas</span>
+    </div>
+    <form class="ask gated" id="askForm" autocomplete="off"><input id="askIn" type="text" placeholder="paste the mint address or a ticker" maxlength="44" spellcheck="false"><button class="pill" type="submit" id="askBtn">Read it</button></form>
+    <p class="quotaLine gated" id="quotaLine"><b>1 free read</b> a day · holders get <b>6 a day</b></p>
+    <p class="askNote gated"><span id="quotaNote" hidden></span><button type="button" class="linkBtn" id="keyOpen">use my own X key</button> · contract is exact, a ticker can collide · <button type="button" class="linkBtn" id="signOut">sign out</button></p>
+    <div class="keyBox gated" id="keyBox" hidden>
+      <p><b id="keyWhy">Your free reads for today are used.</b> Keep reading through your own <a href="https://twitterapi.io" target="_blank" rel="noopener">twitterapi.io</a> key: it rides with each request and is never stored on our side. A read costs you about a third of a cent. The chain side stays free.</p>
+      <form id="keyForm" autocomplete="off"><input id="keyIn" type="password" placeholder="paste your twitterapi.io key" spellcheck="false" autocomplete="off"><button class="pill small" type="submit">Use my key</button></form>
+      <p class="keyFoot"><span id="keyState">No key saved.</span> <button type="button" class="linkBtn" id="keyForget" hidden>forget it</button> · <button type="button" class="linkBtn" id="keyClose">close</button></p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap body gated" id="rooms">
+  <section class="room" id="read">
+    <div class="readCard" id="readCard" hidden></div>
+    <h2 class="boardHead">Trending now. <span class="soft">Top 10 on Solana.</span></h2>
+    <p class="boardNote">The ten the site is watching this hour, last read of the chain. Click a row to put it in the box.</p>
+    <div class="board" id="board"><div class="row"><span>token</span><span>price</span><span>buyers</span><span>sellers</span><span>verdict</span><span class="sc">score</span></div><div class="empty">loading…</div></div>
+  </section>
+</div>
+
+<div class="foot"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const short = a => a.slice(0, 6) + "…" + a.slice(-4);
+const fmtN = n => n == null ? "-" : Number(n).toLocaleString("en-US");
+const usd = n => n == null ? "-" : n >= 1e9 ? "$" + (n/1e9).toFixed(2) + "B" : n >= 1e6 ? "$" + (n/1e6).toFixed(2) + "M" : n >= 1e3 ? "$" + (n/1e3).toFixed(1) + "K" : "$" + Number(n).toFixed(2);
+const price = p => p == null ? "-" : p >= 1 ? "$" + Number(p).toFixed(2) : p >= 0.01 ? "$" + Number(p).toFixed(4) : "$" + Number(p).toPrecision(3);
+// the visitor's own twitterapi.io key lives in this browser only (localStorage) and goes
+// along as a header; the server uses it only once the day's free reads are gone
+let XKEY = null; try { XKEY = localStorage.getItem("medusa_xkey") || null; } catch {}
+const api = async (p, o = {}) => {
+  const headers = { ...(o.headers || {}) }; if (XKEY) headers["x-twitter-key"] = XKEY;
+  const r = await fetch("/api/agent" + p, { cache: "no-store", ...o, headers }); let j = null; try { j = await r.json(); } catch {} return { ok: r.ok, status: r.status, j };
+};
+let Q = null;                                   // the last quota the server told us
+function showQuota(q) {
+  Q = q || Q;
+  const l = $("quotaLine"); if (!l) return;
+  $("keyOpen").textContent = XKEY ? "my X key" : "use my own X key";
+  if (!q) { l.innerHTML = "<b>1 free read</b> a day · holders get <b>6 a day</b>"; return; }
+  const sym = q.holding && q.holding.symbol, need = q.holding && q.holding.need;
+  const left = q.left > 0 ? "<b class='on'>" + q.left + " of " + q.free + "</b> free reads left today" : "<b class='off'>Free reads for today are used</b>" + (XKEY ? " · reading on your own X key" : "");
+  const tier = q.holder ? "you are a <b>holder</b>: " + q.free + " a day" : (sym ? "hold <b>$" + need + " of $" + esc(sym) + "</b> for <b>" + (q.base + q.extra) + " a day</b>" : "holders get <b>" + (q.base + q.extra) + " a day</b>");
+  l.innerHTML = left + " · " + tier;
+}
+function keyState() { $("keyState").textContent = XKEY ? "A key is saved in this browser (" + XKEY.slice(0, 4) + "…" + XKEY.slice(-3) + ")." : "No key saved."; $("keyForget").hidden = !XKEY; }
+function askKey(msg) { $("keyWhy").textContent = msg || "Your free reads for today are used."; keyState(); $("keyBox").hidden = false; $("keyIn").focus(); }
+
+let ME = null;   // { address, key, token }
+
+/* ================= the gate ================= */
+const log = $("accessLog");
+const row = (label, val) => "<span class='p'>›</span> " + label + " <span class='d'>" + ".".repeat(Math.max(2, 16 - label.length)) + "</span> " + val;
+const add = (html, cls) => { const d = document.createElement("div"); d.className = "al" + (cls ? " " + cls : ""); d.innerHTML = html; log.appendChild(d); return d; };
+const clearLog = () => { log.innerHTML = ""; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const typed = async (cmd) => {
+  const first = add("<span class='p'>$</span> <span class='c'></span>", "cur"), c = first.querySelector(".c");
+  for (let i = 1; i <= cmd.length; i++) { c.textContent = cmd.slice(0, i); await wait(18 + Math.random() * 30); }
+  first.classList.remove("cur");
+};
+
+// a Solana wallet in this browser: Phantom first, then Solflare, Backpack, anything that
+// registered itself as window.solana
+const provider = () => {
+  const p = (window.phantom && window.phantom.solana) || window.solana || window.solflare || (window.backpack && window.backpack.solana);
+  return p && typeof p.signMessage === "function" ? p : null;
+};
+// base58, for the signature the wallet hands back as bytes
+const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const b58 = bytes => {
+  let zeros = 0; while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+  const digits = [];
+  for (const b of bytes) {
+    let carry = b;
+    for (let i = 0; i < digits.length; i++) { carry += digits[i] * 256; digits[i] = carry % 58; carry = Math.floor(carry / 58); }
+    while (carry > 0) { digits.push(carry % 58); carry = Math.floor(carry / 58); }
+  }
+  let s = "1".repeat(zeros);
+  for (let i = digits.length - 1; i >= 0; i--) s += B58[digits[i]];
+  return s;
+};
+const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const messageFor = (addr, nonce, issued) =>
+  `medusa.cash wants you to sign in with your wallet.\n\n` +
+  `Address: ${addr}\nNonce: ${nonce}\nIssued: ${issued}\n\n` +
+  `Purpose: open the MEDUSA agent. This is a signature, not a transaction. No gas.`;
+const hex = s => "0x" + [...new TextEncoder().encode(s)].map(b => b.toString(16).padStart(2, "0")).join("");
+
+// the log says what happened; the hint under the button only ever carries one short line
+function setLocked(title, sub) {
+  document.body.classList.remove("open");
+  $("lockSub").innerHTML = sub;
+  $("connect").disabled = false;
+}
+function setOpen(me) {
+  ME = me;
+  document.body.classList.add("open");
+  add(row("signed in", "<span class='ok'>" + short(me.address) + "</span> <span class='d'>· 7 days, or until you sign out</span>"));
+  showQuota(me.quota);
+  fillBoard();
+}
+
+async function connect() {
+  const btn = $("connect"); btn.disabled = true;
+  clearLog();
+  await typed("medusa connect --agent");
+  const prov = provider();
+  if (!prov) {
+    add(row("wallet", "<span class='no'>NONE</span> no wallet in this browser"));
+    $("mmLink").hidden = !isPhone;
+    setLocked("No wallet here", isPhone
+      ? "<b>No Solana wallet in this browser.</b> Open the page inside Phantom or Solflare, or tap Open in Phantom."
+      : "<b>No Solana wallet in this browser.</b> Install Phantom or Solflare, then connect.");
+    return;
+  }
+  try {
+    const resp = await prov.connect();
+    const pk = (resp && resp.publicKey) || prov.publicKey;
+    if (!pk) throw new Error("the wallet gave no address");
+    const addr = pk.toString();
+    add(row("wallet", "<span class='ok'>" + short(addr) + "</span>"));
+    const n = await api("/nonce");
+    if (!n.ok) throw new Error("could not get a nonce");
+    add(row("challenge", "<span class='ok'>" + n.j.nonce.slice(0, 8) + "…</span> sign it in your wallet"), "cur");
+    const message = messageFor(addr, n.j.nonce, n.j.issued);
+    let signature;
+    try {
+      const r = await prov.signMessage(new TextEncoder().encode(message), "utf8");
+      const bytes = r && r.signature ? r.signature : r;                      // Phantom wraps it, Solflare does not
+      signature = b58(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes));
+    }
+    catch (e) { log.lastChild.classList.remove("cur"); add(row("signature", "<span class='no'>REFUSED</span> nothing signed")); setLocked("Not signed", "<b>Nothing signed.</b> Try again when you are ready."); return; }
+    log.lastChild.classList.remove("cur");
+    add(row("signature", "<span class='ok'>ok</span>"));
+    const v = await api("/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ address: addr, nonce: n.j.nonce, issued: n.j.issued, signature }) });
+    if (v.ok) {
+      { const h = v.j.holding, q = v.j.quota || {};
+        if (h && h.usd != null) add(row("holding", "<span class='" + (v.j.holder ? "ok" : "d") + "'>$" + h.usd.toFixed(2) + " in $" + esc(h.symbol) + "</span> <span class='d'>· " + (v.j.holder ? "holder, " + q.free + " free reads a day" : "under $" + h.need + ", " + q.base + " free read a day, holders get " + (q.base + q.extra)) + "</span>"));
+        else if (v.j.via === "list") add(row("holding", "<span class='ok'>on the list</span> <span class='d'>· " + q.free + " free reads a day</span>")); }
+      add(row("your seat", "<span class='open'>OPEN</span>"));
+      setOpen({ ...((await api("/me")).j || {}), address: v.j.address });
+      setTimeout(() => $("askIn").focus({ preventScroll: true }), 400);
+    } else if (v.status === 403) {
+      const h = v.j?.holding;
+      if (h && h.usd != null) add(row("holding", "<span class='no'>" + fmtN(Math.round(h.balance)) + " $" + esc(h.symbol) + "</span> <span class='d'>· $" + h.usd.toFixed(2) + " · the seat needs $" + h.need + "</span>"));
+      add(row("your seat", "<span class='lock'>LOCKED</span> " + esc(h ? "not enough " + "$" + h.symbol : "this wallet has no seat yet")));
+      setLocked("No seat for this wallet", h
+        ? "<b>" + short(addr) + " holds $" + (h.usd == null ? "?" : h.usd.toFixed(2)) + " of $" + esc(h.symbol) + ".</b> The seat needs $" + h.need + " in the wallet you connect." + (h.buy ? " <a href='" + esc(h.buy) + "' target='_blank' rel='noopener'>Buy $" + esc(h.symbol) + " ↗</a>" : "")
+        : "<b>" + short(addr) + " has no seat.</b> Try another wallet.");
+    } else {
+      add(row("your seat", "<span class='no'>ERROR</span> " + esc(v.j?.error || ("HTTP " + v.status))));
+      setLocked("Try again", "<b>" + esc(v.j?.error || "The sign-in did not go through.") + "</b>");
+    }
+  } catch (e) {
+    add(row("error", "<span class='no'>" + esc(e.message || "failed") + "</span>"));
+    setLocked("Try again", "<b>" + esc(e.message || "The wallet did not answer.") + "</b>");
+  }
+}
+$("connect").addEventListener("click", connect);
+const signOut = async () => { await api("/logout", { method: "POST" }); ME = null; clearLog(); add(row("your seat", "<span class='d'>closed</span>")); setLocked("Holders only", "Signed out · connect again whenever you like"); scrollTo({ top: 0, behavior: "smooth" }); };
+$("signOut").addEventListener("click", signOut);
+
+// already seated? a returning tab skips the ceremony
+(async () => {
+  const me = await api("/me");
+  if (!me.ok && me.j?.closed) { add("<span class='p'>$</span> <span class='c'>medusa connect --agent</span>"); add(row("your seat", "<span class='lock'>CLOSED</span> " + esc(me.j.error))); setLocked("Seat closed", "<b>" + esc(me.j.error) + ".</b> Top up and connect again."); }
+  else if (me.ok) { add("<span class='p'>$</span> <span class='c'>medusa connect --agent</span>"); add(row("session", "<span class='ok'>found</span>")); add(row("your seat", "<span class='open'>OPEN</span>")); setOpen(me.j); }
+  else { add("<span class='p'>$</span> <span class='c'>medusa connect --agent</span>"); add(row("agent runtime", "<span class='ok'>ready</span>")); add(row("your seat", "<span class='lock'>LOCKED</span>")); $("mmLink").hidden = !(isPhone && !provider()); }
+})();
+
+/* ================= the read room ================= */
+const card = $("readCard");
+const pct = v => v == null ? "-" : (v > 0 ? "+" : "") + Number(v).toFixed(v > 100 || v < -100 ? 0 : 1) + "%";
+const cls = v => v > 0 ? "up" : v < 0 ? "dn" : "";
+const ago = iso => { const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.round(m / 60) + " h ago"; };
+let readBusy = false, stepTimer = 0;
+function showSteps(sym) {
+  card.hidden = false;
+  const isCa = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(sym);   // a Solana mint: show 'Scanning…' and the short address, not a giant ticker
+  card.innerHTML = "<div class='rcHead'>" + (isCa ? "<b>Scanning<span class='dots'><i>.</i><i>.</i><i>.</i></span></b><span class='nm'><code class='ic'>" + esc(short(sym)) + "</code> on Robinhood Chain</span>" : "<b>$" + esc(sym) + "</b><span class='nm'>reading…</span>") + "</div>" +
+    "<div class='rcSteps' id='rcSteps'><div class='on'><i></i>finding the pool on Solana</div><div><i></i>walking the last hour of wallets through it</div><div><i></i>asking X what it liked most today</div><div><i></i>scoring money against words</div></div>";
+  const rows = [...card.querySelectorAll("#rcSteps div")]; let k = 0;
+  clearInterval(stepTimer);
+  stepTimer = setInterval(() => { if (k >= rows.length - 1) return; rows[k].className = "done"; rows[++k].className = "on"; }, 2600);
+}
+function renderRead(r) {
+  clearInterval(stepTimer);
+  const v = r.verdict, c = r.onchain, so = r.social, m = r.market;
+  const g = v.grade || { level: 0, label: v.tag, note: v.line, caveats: [] };
+  const lv = "l" + g.level;
+  const tagCls = v.tag === "CONFIRMED" ? (v.score < 0 ? "dn" : "") : v.tag === "CONTRADICTED" ? "dn" : "dim";
+  const meter = "<div class='meter'>" + [-2, -1, 0, 1, 2].map(k => "<i class='" + (k === g.level ? "on" : "") + "'></i>").join("") + "</div>";
+  const wallets = c ? (c.wallets ?? (c.buys + c.sells)) : 0;
+  const bPct = c && wallets ? Math.round(((c.buyers ?? c.buys) / wallets) * 100) : 50;
+  const msgs = (so.bull || 0) + (so.bear || 0), sPct = msgs ? Math.round(so.bull / msgs * 100) : 50;
+  const src = !c ? "no chain read" : c.source === "walk" ? "walked just now · block " + fmtN(c.head) : c.source === "board" ? "the board's read, " + ago(c.updated) : "DexScreener fills (trades, not wallets)";
+  card.innerHTML =
+    "<div class='rcHead'><b>$" + esc(r.symbol) + "</b><span class='nm'>" + esc(r.name) + " · " + esc(r.chainName) + (m.ageH != null ? " · " + (m.ageH < 48 ? m.ageH + " h old" : Math.round(m.ageH / 24) + " d old") : "") + "</span>" +
+      "<span class='lk'><a class='ghost' href='" + esc(r.url) + "' target='_blank' rel='noopener'>DexScreener ↗</a><a class='ghost' href='" + esc(r.explorer) + "' target='_blank' rel='noopener'>Explorer ↗</a></span></div>" +
+    "<div class='rcVerdict'><div class='rcScore " + lv + "'>" + "<span class='n'>" + (v.score > 0 ? "+" : "") + v.score + "</span>" + meter + "</div><div><div class='rcTag'><span class='rcGrade " + lv + "'>" + esc(g.label) + "</span><span class='t " + tagCls + "'>" + esc(v.tag) + "</span>" + (v.runner ? "<span class='run'>runner watch</span>" : "") + (v.fresh ? "<span class='run'>new</span>" : "") + "</div>" +
+      "<div class='rcLine'>" + esc(g.note) + "<small>" + esc(v.line.replace(/^RUNNER WATCH · /, "")) + " · chain " + (v.chainLean > 0 ? "+" : "") + v.chainLean + (v.socialLean != null ? " · crowd " + (v.socialLean > 0 ? "+" : "") + v.socialLean : " · crowd quiet") + (r.cached ? " · cached " + ago(r.cachedAt) + ", free" : (r.social && r.social.ownKey ? " · read on your own X key" : " · a free read")) + "</small></div>" +
+      ((g.caveats || []).length ? "<div class='rcCav'>" + g.caveats.map(c => "<span>" + esc(c) + "</span>").join("") + "</div>" : "") + "</div></div>" +
+    "<div class='rcMarket'><div><b>" + price(m.price) + "</b><span>price</span></div><div><b class='" + cls(m.change.h1) + "'>" + pct(m.change.h1) + "</b><span>1h</span></div><div><b class='" + cls(m.change.h24) + "'>" + pct(m.change.h24) + "</b><span>24h</span></div><div><b>" + usd(m.mcap) + "</b><span>market cap</span></div><div><b>" + usd(m.liquidity) + "</b><span>liquidity</span></div><div><b>" + usd(m.volume.h24) + "</b><span>24h volume</span></div></div>" +
+    "<div class='rcCols'>" +
+      "<div class='rcCol'><h4>Money · last " + (c ? c.windowMinutes : 60) + " min<small>" + esc(src) + "</small></h4>" +
+        (c ? "<div class='bar'><i style='width:" + bPct + "%'></i><i class='r' style='width:" + (100 - bPct) + "%'></i></div>" +
+        "<div class='split'><span><b>" + bPct + "%</b> buying</span><span class='r'><b>" + (100 - bPct) + "%</b> selling</span></div>" +
+        "<div class='kv'><span>volume</span><b>" + usd(c.volumeUsd) + "</b>" + (c.medianBuyUsd ? "<span>median buy</span><b>" + usd(c.medianBuyUsd) + "</b>" : "") +
+        (c.prints || []).map(p => "<span>" + p.side + "</span><b>" + usd(p.usd) + " · " + short(p.wallet) + " <a href='" + esc(p.txUrl) + "' target='_blank' rel='noopener'>tx ↗</a></b>").join("") + "</div>"
+        : "<div class='rcEmpty'>The chain could not be read for this one.</div>") +
+      "</div>" +
+      "<div class='rcCol'><h4>Words · X today<small>" + (so.note ? esc(so.note) : "what the loudest said") + "</small></h4>" +
+        (so.posts && so.posts.length ? "<div class='posts'>" + so.posts.map(p => "<a class='post' href='" + esc(p.url) + "' target='_blank' rel='noopener'>" + (p.avatar ? "<img src='" + esc(p.avatar) + "' alt='' loading='lazy' referrerpolicy='no-referrer'>" : "<div class='noav'></div>") +
+          "<div><div class='who'><b>" + esc(p.name) + "</b><span>@" + esc(p.handle) + " · " + fmtN(p.followers) + " · " + fmtN(p.likes) + " ♥</span><span class='sd " + (p.sentiment === "Bearish" ? "bear" : p.sentiment ? "" : "none") + "'>" + (p.sentiment ? p.sentiment + (p.emo ? " · " + p.emo : "") : "no side") + "</span></div>" +
+          "<p>" + esc(p.text) + "<span class='op'>open on X ↗</span></p></div></a>").join("") + "</div>"
+        : "<div class='rcEmpty'>Nothing readable about it on X in the last 24 hours.</div>") +
+      "</div>" +
+    "</div>";
+  playRead(v.score);
+}
+// the read arrives in motion (owner 2026-09-26), same choreography as the front page's sample
+function playRead(target) {
+  card.classList.remove("play"); void card.offsetWidth;
+  card.querySelectorAll(".post").forEach((el, i) => el.style.setProperty("--d", (0.35 + i * 0.06) + "s"));
+  card.querySelectorAll(".rcMarket>div").forEach((el, i) => el.style.setProperty("--i", i));
+  card.classList.add("play");
+  const numEl = card.querySelector(".rcScore .n");
+  if (!numEl || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const t0 = performance.now(), dur = 1100;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), val = Math.round(target * (1 - Math.pow(1 - k, 3)));
+    numEl.textContent = (val > 0 ? "+" : "") + val;
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+// one ticker, several contracts: the visitor picks by address, and only then does the read run
+function renderChoose(r) {
+  clearInterval(stepTimer);
+  card.innerHTML = "<div class='rcHead'><b>$" + esc(r.query) + "</b><span class='nm'>" + r.choose.length + " tokens carry this ticker on Solana</span></div>" +
+    "<div class='choose'><div class='why'><b>Which one?</b> Pick by contract, or paste the address you were given. Nothing is read until you choose.</div>" +
+    "<div class='opt hd'><span>token</span><span>contract</span><span>mcap</span><span>liquidity</span><span></span></div>" +
+    r.choose.map(t => "<div class='opt' data-ca='" + esc(t.address) + "'><span><b>" + esc(t.name) + "</b>$" + esc(t.symbol) + (t.ageH != null ? " · " + (t.ageH < 48 ? t.ageH + " h" : Math.round(t.ageH / 24) + " d") : "") + "</span><span class='ca'>" + esc(t.address) + "</span><span>" + usd(t.mcap) + "</span><span>" + usd(t.liquidity) + "</span><span class='go'>read →</span></div>").join("") + "</div>";
+  card.querySelectorAll(".opt[data-ca]").forEach(o => o.onclick = () => readIt(o.dataset.ca));
+}
+async function readIt(q) {
+  q = String(q || "").trim().replace(/^\$/, "");
+  if (!q || readBusy) return;
+  // nothing left today and no key of their own: say so at once, no flash of "reading…"
+  if (Q && Q.left <= 0 && !XKEY) { $("askIn").value = q; card.hidden = true; askKey("Your free reads for today are used."); return; }
+  readBusy = true; $("askBtn").disabled = true; $("askIn").value = q;
+  showSteps(q);
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  try {
+    const r = await api("/v1/read/" + encodeURIComponent(q));
+    if (r.ok && r.j.choose) renderChoose(r.j);
+    else if (r.ok) { renderRead(r.j); showQuota(r.j.quota); }
+    else {
+      clearInterval(stepTimer);
+      if (r.status === 401 && r.j?.closed) { card.hidden = true; ME = null; clearLog(); add(row("your seat", "<span class='lock'>CLOSED</span> " + esc(r.j.error))); setLocked("Seat closed", "<b>" + esc(r.j.error) + ".</b> Top up and connect again."); scrollTo({ top: 0, behavior: "smooth" }); }
+      else if (r.status === 402) { showQuota(r.j?.quota); card.hidden = true; askKey(XKEY ? esc(r.j?.error || "That key did not work").replace(/[.]?$/, ".") + " Paste another." : "Your free reads for today are used."); if (XKEY) { XKEY = null; try { localStorage.removeItem("medusa_xkey"); } catch {} } }
+      else card.innerHTML = "<div class='rcErr'>" + esc(r.j?.error || ("HTTP " + r.status)) + "</div>";
+    }
+  } catch (e) { clearInterval(stepTimer); card.innerHTML = "<div class='rcErr'>" + esc(e.message) + "</div>"; }
+  readBusy = false; $("askBtn").disabled = false;
+}
+$("askForm").addEventListener("submit", e => { e.preventDefault(); readIt($("askIn").value); });
+$("keyForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const k = $("keyIn").value.trim(); if (!k) return;
+  XKEY = k; try { localStorage.setItem("medusa_xkey", k); } catch {}
+  $("keyIn").value = ""; $("keyBox").hidden = true; $("keyOpen").textContent = "my X key";
+  if ($("askIn").value.trim()) readIt($("askIn").value);
+});
+$("keyOpen").addEventListener("click", () => { if (!$("keyBox").hidden) { $("keyBox").hidden = true; return; } askKey("Your own twitterapi.io key, for reads past the free ones."); });
+$("keyClose").addEventListener("click", () => { $("keyBox").hidden = true; });
+$("keyForget").addEventListener("click", () => { XKEY = null; try { localStorage.removeItem("medusa_xkey"); } catch {} keyState(); $("keyOpen").textContent = "use my own X key"; });
+
+
+/* ================= the board: her ten, each a read away ================= */
+async function fillBoard() {
+  const board = $("board");
+  const [l, v] = await Promise.all([api("/v1/live"), api("/v1/verdicts")]);
+  // by mint first: on Solana two coins can carry one ticker
+  const vs = new Map((v.j?.verdicts || []).flatMap(x => [[x.address || "", x], [String(x.symbol).toUpperCase(), x]]));
+  const all = (l.j?.tokens || []), toks = all.some(t => t.watch) ? all.filter(t => t.watch) : all;
+  board.querySelectorAll(".row:not(:first-child),.empty").forEach(e => e.remove());
+  if (!toks.length) { const d = document.createElement("div"); d.className = "empty"; d.textContent = "no live read yet"; board.appendChild(d); return; }
+  toks.forEach(t => {
+    const vd = (t.address && vs.get(t.address)) || vs.get(String(t.symbol).toUpperCase());
+    const r = document.createElement("div"); r.className = "row";
+    r.innerHTML = "<span class='sym'>" + esc(t.symbol) + "</span><span>" + price(t.price) + "</span><span>" + (t.buyers ?? 0) + "</span><span>" + (t.sellers ?? 0) + "</span><span class='t" + (vd?.runner ? " run" : "") + "'>" + (vd ? (vd.runner ? "RUNNER WATCH" : vd.tag) : (t.buyers || t.sellers ? "TOO THIN" : "UNTRADED")) + "</span><span class='sc" + (vd && vd.score < 0 ? " dn" : "") + "'>" + (vd ? (vd.score > 0 ? "+" : "") + vd.score : "-") + "</span>";
+    r.onclick = () => { $("askIn").value = t.symbol; $("askIn").focus(); };   // fills the box only - a read is a paid request, so it waits for the button
+    board.appendChild(r);
+  });
+}
+
+/* ================= chrome ================= */
+{
+  const burger = $("burger"), sheet = $("sheet");
+  const setMenu = on => { document.body.classList.toggle("menu", on); burger.setAttribute("aria-expanded", on); sheet.setAttribute("aria-hidden", !on); };
+  burger.addEventListener("click", () => setMenu(!document.body.classList.contains("menu")));
+  sheet.querySelectorAll("a").forEach(a => a.addEventListener("click", () => setMenu(false)));
+  addEventListener("keydown", e => { if (e.key === "Escape") setMenu(false); });
+}
+})();
+</script>
+<script src="/launch.js"></script>
+<script>(function(){var L=window.LAUNCH;if(L&&L.github){var g=document.getElementById("navGit");if(g){g.href=L.github;g.hidden=false;}}})();</script>
+<script src="/jelly-hero.js?v=mint1"></script>
+<script>if(window.jellyHero && matchMedia("(min-width: 901px)").matches) jellyHero(document.getElementById("jelly"), { size: .27, tilt: .42, cy: .34 });</script>
+</body>
+</html>

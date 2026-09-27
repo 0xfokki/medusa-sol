@@ -1,0 +1,2100 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><title>MEDUSA - Make your call</title><meta name="description" content="Six jellyfish, six Solana memecoins. Call UP or DOWN before the round ends and climb the leaderboard."><style>
+html,body{margin:0;background:#04080d}
+body{padding:20px}
+#medusa-game{max-width:1600px;margin:auto}
+.mg-rotate-block{display:none}
+body.v2-full{padding:0;overflow:hidden}
+body.v2-full #medusa-game{max-width:none}
+@media(max-width:600px){body{padding:0}}
+@media(max-width:900px) and (orientation:portrait){
+ body{overflow:hidden}
+ #medusa-game{display:none}
+ .mg-rotate-block{display:flex;position:fixed;inset:0;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#04080d;color:#edf2f3;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:30px}
+}
+</style></head><body>
+<div class="mg-rotate-block" aria-hidden="true">
+ <div style="font-size:44px;color:#86efac;animation:mg-rotate-spin 1.8s ease-in-out infinite">⟳</div>
+ <div style="font-size:14px;letter-spacing:1px;font-weight:600">Rotate your phone</div>
+ <div style="font-size:12px;color:#8d9d95;max-width:260px;line-height:1.6">MEDUSA works best in landscape — turn your device sideways to enter the ocean.</div>
+</div>
+<style>@keyframes mg-rotate-spin{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}</style>
+<div id="medusa-game" data-view="ocean">
+ <div class="mg-layout">
+ <div class="mg-shell">
+  <div class="mg-gate" role="dialog" aria-modal="true" aria-labelledby="mg-gate-title">
+   <div class="mg-gate-card">
+    <button class="mg-gate-close cursor-interaction" type="button" aria-label="Close">×</button>
+    <div class="mg-eyebrow">CLOSED BETA · EARLY ACCESS</div>
+    <h2 id="mg-gate-title">Predict first.<br><span class="mg-accent">Earn your way in.</span></h2>
+    <p>MEDUSA’s prediction ocean is invite-only right now. Make calls, earn points, unlock full access to the closed system sooner.</p>
+    <form class="mg-gate-form" autocomplete="off">
+     <label>WALLET ADDRESS<input type="text" name="wallet" placeholder="Your Solana wallet or GMGN wallet link" autocomplete="off" spellcheck="false"></label>
+     <p class="mg-wallet-disclaimer">Use your own wallet — rewards go to this address. No point entering someone else's.</p>
+     <label>TWITTER / X <small>(optional)</small><input type="text" name="twitter" placeholder="@yourhandle" autocomplete="off" spellcheck="false"></label>
+     <button type="submit" class="mg-gate-submit cursor-interaction" disabled>Enter the ocean <span>↗</span></button>
+    </form>
+    <p class="mg-gate-error" data-gate-error hidden></p>
+    <p class="mg-gate-value">or <a href="#" data-gate-value>just see which sea creature this wallet is</a> · no sign-up</p>
+    <button type="button" class="mg-gate-skip cursor-interaction">Skip for now</button>
+    <p class="mg-fineprint">No funds move, no wallet connection needed — just how we track early access.</p>
+   </div>
+  </div>
+  <div class="mg-credit-popup is-hidden" role="dialog" aria-modal="true" aria-labelledby="mg-credit-title">
+   <div class="mg-credit-card">
+    <button class="mg-credit-close cursor-interaction" type="button" aria-label="Close">×</button>
+    <div class="mg-eyebrow">ON-CHAIN STATUS DETECTED</div>
+    <h2 id="mg-credit-title"><span data-credit-label>Active Trader</span></h2>
+    <p>Credited <b class="mg-accent" data-credit-points>+150</b> starting points for your Solana trading history.</p>
+    <button type="button" class="mg-credit-ok cursor-interaction">Nice</button>
+   </div>
+  </div>
+  <div class="mg-reveal is-hidden" role="dialog" aria-modal="true" aria-labelledby="mg-reveal-title">
+   <div class="mg-reveal-field" aria-hidden="true">
+    <div class="mg-rf-glow mg-rf-a"></div><div class="mg-rf-glow mg-rf-b"></div><div class="mg-rf-glow mg-rf-c"></div>
+    <span class="mg-rf-v" style="top:6%;left:4%;font-size:7vw;animation-duration:17s">WHALE</span>
+    <span class="mg-rf-v" style="top:68%;left:2%;font-size:7vw;animation-duration:21s;animation-delay:-6s">SHRIMP</span>
+    <span class="mg-rf-v" style="top:14%;left:70%;font-size:7vw;animation-duration:19s;animation-delay:-12s">SHARK</span>
+    <span class="mg-rf-v" style="top:76%;left:64%;font-size:6.5vw;animation-duration:23s;animation-delay:-20s">PLANKTON</span>
+    <span class="mg-rf-v" style="top:42%;left:84%;font-size:5.5vw;animation-duration:20s;animation-delay:-3s">DOLPHIN</span>
+    <span class="mg-rf-v" style="top:82%;left:36%;font-size:8vw;animation-duration:15.5s;animation-delay:-16s">FISH</span>
+    <span class="mg-rf-v" style="top:2%;left:44%;font-size:6vw;animation-duration:25s;animation-delay:-9s">MEGALODON</span>
+    <div class="mg-rf-vig"></div>
+   </div>
+   <div class="mg-reveal-card">
+    <button class="mg-reveal-close cursor-interaction" type="button" aria-label="Close">×</button>
+    <div class="mg-reveal-loader">
+     <div class="mg-eyebrow">READING YOUR WALLET</div>
+     <p class="mg-reveal-line"><span class="mg-reveal-dot"></span>pulling on-chain history</p>
+     <p class="mg-reveal-line"><span class="mg-reveal-dot"></span>scoring trades and win rate</p>
+     <p class="mg-reveal-line"><span class="mg-reveal-dot"></span>placing you in the food chain</p>
+    </div>
+    <div class="mg-reveal-result">
+     <div class="mg-eyebrow">YOUR WALLET CARD</div>
+     <h2 id="mg-reveal-title" data-reveal-title>—</h2>
+     <p class="mg-reveal-sub" data-reveal-sub></p>
+     <div class="mg-reveal-frame"><div class="mg-reveal-tilt"><img class="mg-reveal-img" alt="Your wallet card" width="1200" height="630"><div class="mg-reveal-sheen"></div><div class="mg-reveal-glare"></div></div></div>
+     <p class="mg-reveal-bonus" data-reveal-bonus hidden></p>
+     <div class="mg-reveal-actions"><button type="button" class="mg-reveal-share cursor-interaction">Post on 𝕏</button><button type="button" class="mg-reveal-dl cursor-interaction">Download image</button><button type="button" class="mg-reveal-cp cursor-interaction">Copy image</button><button type="button" class="mg-reveal-ok cursor-interaction">Continue</button></div>
+     <p class="mg-reveal-more">Curious about another wallet? <a href="/w" target="_blank" rel="noopener">Check it on the card page ↗</a></p>
+    </div>
+   </div>
+  </div>
+  <a class="mg-brand cursor-interaction" href="#" aria-label="Medusa ocean"><span class="mg-brand-mark">M</span> MEDUSA</a><a class="mg-v2-x cursor-interaction" href="https://x.com/0x_fokki" target="_blank" rel="noopener" aria-label="MEDUSA on X" title="MEDUSA on X"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <main class="mg-ocean" aria-label="Prediction ocean">
+   <div class="mg-v2-menu">
+    <div class="mg-v2-menu-row">
+     <button type="button" class="mg-v2-pill mg-v2-card cursor-interaction" data-v2-card hidden>My card</button>
+     <button type="button" class="mg-v2-pill cursor-interaction" data-v2-board>Leaderboard</button>
+     <span class="mg-v2-rank-outside">Your rank <b data-v2-rank>#—</b></span>
+    </div>
+    <button type="button" class="mg-v2-pill cursor-interaction" data-v2-referral>Refer &amp; Earn</button>
+   </div>
+   <div class="mg-v2-wallet">
+    <button type="button" class="mg-v2-connect-btn cursor-interaction" data-v2-connect>Connect your wallet</button>
+    <button type="button" class="mg-v2-profile cursor-interaction" data-v2-profile hidden><span class="mg-v2-tier" data-v2-tier></span><span class="mg-v2-sep">·</span><span data-v2-wallet></span><span class="mg-v2-sep">·</span><span data-v2-points>0</span> pts</button>
+    <button type="button" class="mg-v2-profile cursor-interaction" data-v2-mypreds hidden>My Predictions<span class="mg-v2-sep">·</span><span data-v2-pred-winrate>—</span><span class="mg-v2-sep">·</span><span data-v2-pred-count>0</span></button>
+    <button type="button" class="mg-v2-icon cursor-interaction" data-v2-lock hidden aria-label="Account access" title="Account access"></button>
+   </div>
+<header class="mgx-top"><span class="mgx-status"><i></i>6 LIVE ROUNDS <em>·</em> NEW JELLY IN <b data-spawn-timer>60:00</b></span></header>
+   <div class="mgx-hero"><span class="mgx-kicker">YOUR INSTINCT. THE MARKET'S ANSWER.</span><h1>Read the tide.<br><span>Make your call.</span></h1><p>Pick a jellyfish. Call the direction.<br>The sooner you decide, the more you earn.</p><a class="mgx-agent cursor-interaction" href="https://medusa.cash/agent" target="_blank" rel="noopener"><span class="mgx-agent-dot"></span>Top players get access to the <b>MEDUSA agent</b> <i>↗</i></a><div class="launch" id="launch" hidden></div></div>
+   <div class="mgx-specimen"><span>SELECTED SPECIMEN</span><strong data-specimen>—</strong><em>ONE CALL. ONE OUTCOME.</em></div>
+   <footer class="mgx-bottom"><div class="mgx-cell mgx-evo"><div class="mg-progress"><div class="mg-role-icon">✧</div><div class="mg-progress-body"><div><span>YOUR EVOLUTION</span><b>BACTERIA <span>→</span> PLANKTON</b></div><div class="mg-meter"><span></span></div><small>0 / 200 PTS <span>200 TO EVOLVE</span></small></div></div></div><div class="mgx-cell"><div class="mg-stat"><span>LOCKED POTENTIAL</span><strong data-pending>0 <small>PTS</small></strong><small data-pending-caption>No open predictions</small></div></div><div class="mgx-cell mgx-you"><div class="mg-leaderboard-you">
+   <div><span>YOUR RANK</span><strong data-you-rank>—</strong></div>
+   <div><span>YOUR POINTS</span><strong data-you-points>1,240</strong></div>
+  </div></div></footer>
+   <div class="mg-v2-idle-hint">Pick a jellyfish to make a prediction.</div>
+   <canvas class="mg-canvas" role="img" aria-label="Glowing jellyfish, each representing a live market prediction round."></canvas>
+   <div class="mg-labels" aria-label="Choose a prediction"></div>
+   <section class="mg-dialog" role="dialog" aria-modal="true" aria-labelledby="mg-question" hidden>
+    <button class="mg-close cursor-interaction" type="button" aria-label="Close prediction">×</button>
+    <div class="mg-dialog-top"><span class="mg-coin" data-coin>₿</span><div><b data-asset>Bitcoin</b><span data-symbol>BTC / USD</span></div><span class="mg-round-state">ROUND OPEN</span></div>
+    <div class="mg-decision">
+     <div class="mgx-eyebrow">TRUST YOUR READ</div><h2 id="mg-question">Will <span data-question-asset>Bitcoin</span> go<br><span class="mg-accent">up</span> or down?</h2>
+     <p class="mgx-next">In the next <b data-next-mins>—</b> minutes.</p><div class="mg-price-row"><span>Round start <b data-start-price>$97,420.00</b></span><button type="button" class="mgx-chart-toggle cursor-interaction" aria-expanded="false">Show chart</button></div>
+     <div class="mg-chart" hidden><iframe data-chart title="Live chart" loading="lazy"></iframe></div>
+     <div class="mg-reward"><div><span>YOUR POTENTIAL REWARD</span><strong><span data-reward>42</span><small>PTS</small></strong></div><div class="mg-reward-time"><span data-countdown>42:30</span><small>LEFT TO SETTLE</small></div></div>
+     <div class="mg-time-track"><span></span></div>
+     <p class="mgx-note">1 minute left = 1 point. Your reward locks when you choose.</p>
+     <div class="mg-votes" data-votes hidden>
+      <div class="mg-votes-label"><span>CALLS SO FAR</span><span data-votes-count>0</span></div>
+      <div class="mg-votes-bar"><span class="mg-votes-up" data-votes-up-bar></span></div>
+      <div class="mg-votes-split"><span data-votes-up>↗ 0%</span><span data-votes-down>↘ 0%</span></div>
+     </div>
+     <div class="mg-choices"><button type="button" class="mg-up cursor-interaction" data-direction="up"><i>↗</i>UP</button><button type="button" class="mg-down cursor-interaction" data-direction="down"><i>↘</i>DOWN</button></div>
+     <p class="mgx-foot">Compared with the round's starting price.<br>Correct call: earn locked points. Wrong call: 0.</p>
+    </div>
+    <div class="mg-confirmed" hidden>
+     <div class="mg-eyebrow">PREDICTION LOCKED</div><h2>You’re in.</h2>
+     <div class="mg-ticket"><div><span>YOUR CALL</span><strong data-locked-direction>↗ UP</strong></div><div><span>LOCKED REWARD</span><strong><span data-locked-points>42</span> <small>PTS</small></strong></div></div>
+     <div class="mg-live-position" hidden><div><span>Round start <b data-confirmed-start></b></span><span>Final <b data-confirmed-now></b></span></div><strong data-confirmed-status></strong></div>
+     <div class="mg-settle"><span class="mg-live-dot"></span><span>Result in <b data-result-time>42:30</b></span></div>
+     <button type="button" class="mg-return cursor-interaction">Back to the ocean</button>
+    </div>
+   </section>
+  </main>
+  <div class="mg-toast" role="status" aria-live="polite"></div>
+ </div>
+ <div class="mg-right-col">
+ <aside class="mg-leaderboard">
+  <div class="mg-leaderboard-head"><span class="mg-eyebrow">LEADERBOARD · TOP 50</span><span class="mg-live-dot"></span></div>
+  <ol class="mg-leaderboard-list"></ol>
+  
+  
+  <p class="mg-leaderboard-cta" data-leaderboard-cta>Connect your wallet and share on X for infinite calls.</p>
+ </aside>
+ <aside class="mg-mypreds">
+  <div class="mg-leaderboard-head"><span class="mg-eyebrow">MY PREDICTIONS</span><span class="mg-live-dot"></span></div>
+  <div class="mg-mypreds-stats">
+   
+  </div>
+  <ol class="mg-mypreds-list"></ol>
+  <p class="mg-mypreds-empty" data-mypreds-empty hidden>No predictions yet — pick a jellyfish to make your first call.</p>
+ </aside>
+ <aside class="mg-referral">
+  <div class="mg-eyebrow">YOUR REFERRAL LINK</div>
+  <p class="mg-referral-copy">Earn <b>100 pts</b> per referral, plus <b>20%</b> of their points, ongoing.</p>
+  <div class="mg-referral-link">
+   <input type="text" readonly data-referral-input value="Connect wallet">
+   <button type="button" class="mg-referral-copy-btn cursor-interaction" disabled>Copy</button>
+  </div>
+  <div class="mg-referral-actions"><button type="button" class="mg-referral-share-btn cursor-interaction" data-referral-share disabled>Share on 𝕏</button><button type="button" class="mg-referral-share-btn cursor-interaction" data-my-card disabled>My wallet card</button></div>
+  <div class="mg-referral-stats">
+   <div><span>INVITED</span><strong data-referral-invites>0</strong></div>
+   <div><span>POINTS EARNED</span><strong data-referral-points>0</strong></div>
+  </div>
+ </aside>
+ </div>
+ </div>
+</div>
+
+<style>
+#medusa-game{--lime:#86efac;--bg:#060b11;--muted:#82909a;--text:#edf2f3;font-family:Arial,Helvetica,sans-serif;color:var(--text);width:100%;color-scheme:dark}
+#medusa-game *{box-sizing:border-box}
+#medusa-game [hidden]{display:none!important}
+#medusa-game button,#medusa-game a{-webkit-tap-highlight-color:transparent}
+#medusa-game button{font:inherit;cursor:pointer}
+#medusa-game button:focus-visible,#medusa-game a:focus-visible{outline:2px solid var(--lime);outline-offset:5px}
+#medusa-game .mg-layout{display:flex;gap:20px;align-items:stretch}
+#medusa-game .mg-shell{background:var(--bg);position:relative;overflow:hidden;border:1px solid #1c252a;border-radius:16px;flex:1;min-width:0;display:flex;flex-direction:column}
+#medusa-game .mg-right-col{width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:20px}
+#medusa-game .mg-leaderboard{background:var(--bg);border:1px solid #1c252a;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px}
+#medusa-game .mg-leaderboard-head{display:flex;align-items:center;justify-content:space-between}
+#medusa-game .mg-leaderboard-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto}
+#medusa-game .mg-leader-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;background:#0d1619}
+#medusa-game .mg-leader-row.is-you{background:#182217;border:1px solid #86efac55}
+#medusa-game .mg-leader-row.is-pinned{position:sticky;bottom:0;z-index:2;background:#1b2618;box-shadow:0 -8px 14px -6px #060b08}
+#medusa-game .mg-leader-row.is-pinned .mg-leader-rank{width:auto;min-width:22px;color:var(--lime)}
+#medusa-game .mg-leader-row.rank-1{background:#1c180fb0;border-left:3px solid #d4af3799}
+#medusa-game .mg-leader-row.rank-2{background:#16181ab0;border-left:3px solid #c0c0c088}
+#medusa-game .mg-leader-row.rank-3{background:#1a140db0;border-left:3px solid #cd7f3288}
+#medusa-game .mg-leader-rank{font-family:monospace;font-size:10px;color:#7f9188;width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%}
+#medusa-game .mg-leader-row.rank-1 .mg-leader-rank{background:#d4af3733;color:#f0d878}
+#medusa-game .mg-leader-row.rank-2 .mg-leader-rank{background:#c0c0c033;color:#e4e4e4}
+#medusa-game .mg-leader-row.rank-3 .mg-leader-rank{background:#cd7f3233;color:#e3a06d}
+#medusa-game .mg-leader-id{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+#medusa-game .mg-leader-id b{font-size:11px;font-weight:400;color:var(--text);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#medusa-game .mg-leader-id a{font-size:10px;color:#8a9992;text-decoration:none}
+#medusa-game .mg-leader-id a:hover{color:var(--lime);text-decoration:underline}
+#medusa-game .mg-leader-id .mg-leader-nolink{font-size:10px;color:#546056}
+#medusa-game .mg-leader-stats{font-size:9px;font-family:monospace;color:#7d938a;letter-spacing:.2px}
+#medusa-game .mg-leader-points{font-family:monospace;font-size:11px;color:var(--lime);flex-shrink:0}
+#medusa-game .mg-leaderboard-you{border-top:1px solid #ffffff13;padding-top:12px;display:flex;justify-content:space-between;gap:10px}
+#medusa-game .mg-leaderboard-you div{display:flex;flex-direction:column;gap:4px}
+#medusa-game .mg-leaderboard-you div:last-child{align-items:flex-end}
+#medusa-game .mg-leaderboard-you span{font-family:monospace;font-size:8px;letter-spacing:1px;color:#8a9992}
+#medusa-game .mg-leaderboard-you strong{font-size:18px;font-weight:400;color:var(--lime)}
+#medusa-game .mg-leaderboard-cta{margin:0;font-size:10px;line-height:1.5;color:#8a9992;text-align:right}
+#medusa-game .mg-leaderboard-cta[hidden]{display:none}
+#medusa-game .mg-referral{background:var(--bg);border:1px solid #1c252a;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+#medusa-game .mg-referral-copy{margin:0;font-size:11px;line-height:1.6;color:#8d9d95}
+#medusa-game .mg-referral-copy b{color:var(--lime);font-weight:600}
+#medusa-game .mg-referral-link{display:flex;gap:8px}
+#medusa-game .mg-referral-link input{flex:1;min-width:0;background:#0f1a17;border:1px solid #2a3a30;border-radius:8px;padding:10px 11px;color:var(--text);font-size:11px;font-family:monospace}
+#medusa-game .mg-referral-copy-btn{flex-shrink:0;background:var(--lime);color:#122000;border:0;border-radius:8px;padding:0 15px;font-size:11px;font-weight:500;transition:transform .15s,filter .15s,opacity .15s}
+#medusa-game .mg-referral-copy-btn:not(:disabled):hover{transform:translateY(-1px);filter:brightness(1.08)}
+#medusa-game .mg-referral-copy-btn:disabled{opacity:.35;cursor:not-allowed}
+#medusa-game .mg-referral-share-btn{background:transparent;border:1px solid var(--lime);color:var(--lime);border-radius:8px;padding:10px;font-size:11px;font-weight:500;letter-spacing:.3px;transition:background .15s,color .15s,opacity .15s}
+#medusa-game .mg-referral-share-btn:not(:disabled):hover{background:var(--lime);color:#122000}
+#medusa-game .mg-referral-share-btn:disabled{opacity:.35;cursor:not-allowed}
+#medusa-game .mg-referral-actions{display:flex;gap:8px}#medusa-game .mg-referral-actions>button{flex:1;min-width:0}
+#medusa-game .mg-referral-stats{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #ffffff13;padding-top:12px}
+#medusa-game .mg-referral-stats div{display:flex;flex-direction:column;gap:4px}
+#medusa-game .mg-referral-stats div:last-child{align-items:flex-end}
+#medusa-game .mg-referral-stats span{font-family:monospace;font-size:8px;letter-spacing:1px;color:#8a9992}
+#medusa-game .mg-referral-stats strong{font-size:18px;font-weight:400;color:var(--lime)}
+@media(max-width:1100px){#medusa-game .mg-layout{flex-direction:column}#medusa-game .mg-right-col{width:100%}}
+#medusa-game.is-solo .mg-labels{display:none}
+#medusa-game .mg-v2-menu{display:none;position:absolute;top:20px;left:20px;z-index:4;flex-direction:column;align-items:flex-start;gap:8px}
+#medusa-game .mg-v2-wallet{display:none;position:absolute;top:20px;right:20px;z-index:4;align-items:center;gap:8px}
+#medusa-game .mg-v2-profile{display:flex;align-items:center;background:#0a1316cc;border:1px solid #263241;border-radius:20px;padding:9px 15px;font-size:11px;font-family:monospace;color:#c8d2dc;letter-spacing:.4px;white-space:nowrap}
+#medusa-game .mg-v2-profile span[data-v2-points]{color:var(--lime);margin-right:4px}
+#medusa-game .mg-v2-sep{color:#3a4743;margin:0 7px}
+#medusa-game .mg-v2-icon{width:36px;height:36px;flex-shrink:0;display:grid;place-items:center;background:#0a1316cc;border:1px solid #263241;border-radius:50%;font-size:14px;color:#c8d2dc}
+#medusa-game .mg-v2-x{display:none;position:fixed;z-index:4;width:34px;height:34px;transform:translateY(-50%);place-items:center;background:#0a1316cc;border:1px solid #263241;border-radius:50%;color:#c8d2dc;text-decoration:none;transition:border-color .15s,color .15s}
+#medusa-game.is-v2 .mg-v2-x{display:grid}
+#medusa-game .mg-v2-x:hover{border-color:var(--lime);color:var(--lime)}
+#medusa-game .mg-v2-tier{color:var(--lime);font-weight:600}
+#medusa-game .mg-v2-profile.is-analyzing .mg-v2-tier{opacity:.4;animation:mg-pulse 1.1s ease-in-out infinite}
+#medusa-game .mg-v2-icon svg{width:16px;height:16px;color:var(--lime);filter:drop-shadow(0 0 3px rgba(134,239,172,.75))}
+#medusa-game .mg-v2-icon:hover{border-color:var(--lime);color:var(--lime)}
+#medusa-game .mg-v2-pill b{color:var(--lime);font-weight:400;margin-left:5px}
+#medusa-game .mg-v2-pill{background:#0a1316cc;border:1px solid #263241;border-radius:20px;padding:9px 16px;font-size:11px;letter-spacing:.4px;color:#c8d2dc;white-space:nowrap}
+#medusa-game .mg-v2-pill:hover{border-color:var(--lime);color:var(--lime)}
+#medusa-game .mg-v2-pill.is-active{background:var(--lime);color:#122000;border-color:var(--lime)}
+#medusa-game .mg-v2-pill.is-active b{color:#122000}
+#medusa-game .mg-v2-menu .mg-v2-pill{width:150px;text-align:center}
+#medusa-game [data-v2-referral]{color:var(--lime);border-color:var(--lime);text-shadow:0 0 6px rgba(134,239,172,.5)}
+#medusa-game [data-v2-referral].is-active{color:#122000;text-shadow:none}
+#medusa-game .mg-v2-menu-row{display:flex;align-items:center;gap:10px}
+#medusa-game .mg-v2-menu-row-center{width:150px;justify-content:center}
+#medusa-game .mg-v2-rank-outside{font-family:monospace;font-size:10px;letter-spacing:.4px;color:#8a9992;white-space:nowrap}
+#medusa-game .mg-v2-rank-outside b{color:var(--lime);font-weight:400}
+#medusa-game .mg-v2-connect-btn{background:var(--lime);color:#122000;border:0;border-radius:20px;padding:9px 16px;font-size:11px;font-weight:500;letter-spacing:.4px;white-space:nowrap;transition:transform .15s,filter .15s}
+#medusa-game .mg-v2-connect-btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+#medusa-game .mg-v2-idle-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;font-family:monospace;font-size:13px;letter-spacing:1.5px;color:#c8d2dc;text-align:center;white-space:nowrap;opacity:0;pointer-events:none;text-shadow:0 0 14px rgba(134,239,172,.35);transition:opacity .5s ease}
+#medusa-game .mg-v2-idle-hint.is-visible{opacity:1;animation:mg-idle-shimmer 2.6s ease-in-out infinite}
+@keyframes mg-idle-shimmer{0%,100%{opacity:.55}50%{opacity:1}}
+#medusa-game.is-v2 .mg-v2-menu{display:flex}
+#medusa-game.is-v2 .mg-v2-wallet{display:flex}
+#medusa-game.is-v2 .mg-right-col{display:contents}
+#medusa-game.is-v2 .mg-leaderboard-list{max-height:none}
+#medusa-game.is-v2 .mg-leaderboard,#medusa-game.is-v2 .mg-referral,#medusa-game.is-v2 .mg-mypreds{position:fixed;top:70px;right:20px;bottom:20px;width:300px;z-index:45;transform:translateX(calc(100% + 30px));transition:transform .32s cubic-bezier(.2,.8,.2,1);overflow-y:auto}
+#medusa-game.is-v2 .mg-referral{bottom:auto}
+#medusa-game.is-v2.v2-board-open .mg-leaderboard{transform:translateX(0)}
+#medusa-game.is-v2.v2-referral-open .mg-referral{transform:translateX(0)}
+#medusa-game.is-v2.v2-preds-open .mg-mypreds{transform:translateX(0)}
+#medusa-game .mg-mypreds{background:var(--bg);border:1px solid #1c252a;border-radius:16px;padding:20px;display:none;flex-direction:column;gap:10px}
+#medusa-game.is-v2 .mg-mypreds{display:flex}
+#medusa-game .mg-mypreds-stats{display:flex;justify-content:space-between;gap:14px;padding-bottom:4px;border-bottom:1px solid #ffffff13}
+#medusa-game .mg-mypreds-stats[hidden]{display:none}
+#medusa-game .mg-mypreds-stats .mg-stat{border-left:0;padding-left:0}
+#medusa-game .mg-mypreds-stats .mg-stat:last-child{align-items:flex-end;text-align:right}
+#medusa-game .mg-mypreds-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#medusa-game .mg-mypreds-empty{margin:10px 0 0;font-size:11px;line-height:1.6;color:#8d9d95;text-align:center}
+#medusa-game .mg-pred-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-radius:10px;background:#0f1a17;border:1px solid #ffffff0d}
+#medusa-game .mg-pred-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+#medusa-game .mg-pred-symbol{font-size:12px;font-weight:600;color:var(--text)}
+#medusa-game .mg-pred-dir{font-family:monospace;font-size:9px;letter-spacing:.5px;color:#8a9992}
+#medusa-game .mg-pred-points{font-size:13px;font-weight:600;flex-shrink:0}
+#medusa-game .mg-pred-points.is-won{color:#6bf07a}
+#medusa-game .mg-pred-points.is-lost{color:#ff8080}
+#medusa-game .mg-pred-points.is-pending{color:#8a9992;font-weight:400;font-size:11px;font-family:monospace}
+#medusa-game.is-v2 .mg-layout{gap:0}
+#medusa-game.is-v2 .mg-shell{border:0;border-radius:0}
+#medusa-game.is-v2 .mg-ocean{height:100vh;min-height:100vh}
+#medusa-game .mg-brand{position:fixed;left:20px;bottom:20px;z-index:4;display:flex;align-items:center;gap:10px;text-decoration:none;color:#eff5ef;font-size:13px;letter-spacing:3px;white-space:nowrap;opacity:.85;transition:opacity .15s}
+#medusa-game .mg-brand:hover{opacity:1}
+#medusa-game .mg-brand-mark{font-size:19px;letter-spacing:-4px;border:1px solid #8ea3a966;border-radius:50%;width:28px;height:28px;text-align:center;line-height:26px;padding-right:4px;color:var(--lime)}
+#medusa-game .mg-live-dot{display:inline-block;width:5px;height:5px;flex-shrink:0;background:var(--lime);border-radius:50%;box-shadow:0 0 9px #86efac44}
+@keyframes mg-pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+#medusa-game .mg-ocean{position:relative;flex:1;min-height:586px;overflow:hidden;background:radial-gradient(ellipse at 55% 45%,#10201b44 0%,transparent 60%)}
+#medusa-game .mg-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+#medusa-game .mg-eyebrow{font-size:9px;letter-spacing:2px;color:#9ba7a8;font-family:monospace}
+#medusa-game .mg-labels{position:absolute;inset:0;pointer-events:none;z-index:1}
+#medusa-game .mg-jelly-label{position:absolute;pointer-events:auto;min-width:122px;text-align:left;padding:11px 13px;color:#f0f5ef;border:1px solid #69807555;border-radius:11px;background:#0a131680;backdrop-filter:blur(2px);box-shadow:0 8px 36px #0003;text-shadow:0 1px 4px rgba(0,0,0,.85);transition:opacity .4s,border-color .2s,box-shadow .2s;will-change:transform}
+#medusa-game .mg-jelly-label:hover{border-color:var(--jelly-border,#86efacaa);box-shadow:0 0 28px var(--jelly-shadow,#86efac10)}
+#medusa-game .mg-label-head{display:flex;align-items:baseline;gap:8px;font-size:13px}
+#medusa-game .mg-label-head b{font-weight:600;color:var(--text)}
+#medusa-game .mg-label-head [data-label-state]{margin-left:auto;font-family:monospace;font-size:9px;letter-spacing:.6px;color:#a0adaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#medusa-game .mg-label-line{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:10px;color:#a0adaa;margin-top:7px;font-family:monospace}
+#medusa-game .mg-label-line b{color:var(--lime);font-weight:400}
+#medusa-game .mg-jelly-label.is-claimed{border-color:#86efac66;background:#131b11f5}
+#medusa-game .mg-jelly-label.is-claimed [data-label-state]{color:var(--lime)}
+#medusa-game [data-position="right"]{color:var(--lime)!important}
+#medusa-game [data-position="wrong"]{color:#efaa91!important}
+#medusa-game [data-position="pending"]{color:#8a9992!important}
+#medusa-game .mg-live-position{padding:0 0 16px;text-align:left}
+#medusa-game .mg-live-position>div{display:flex;justify-content:space-between;gap:14px;color:#8f9e8c;font-family:monospace;font-size:9px}
+#medusa-game .mg-live-position>div>span:last-child{text-align:right}
+#medusa-game .mg-live-position b{display:block;font-weight:400;font-size:12px;color:#dae6d5;margin-top:5px}
+#medusa-game .mg-live-position>strong{display:block;font-size:12px;font-weight:400;margin-top:11px}
+#medusa-game .mg-live-position>small{display:block;font-size:8px;color:#83947b;margin-top:5px}
+#medusa-game .mg-confirmed .mg-ticket{margin-bottom:15px;padding:16px 8px}
+#medusa-game .mg-confirmed .mg-check{width:43px;height:43px;margin-bottom:13px;font-size:22px}
+#medusa-game .mg-confirmed>p:not(.mg-fineprint){margin-bottom:15px}
+#medusa-game .mg-confirmed .mg-check{display:none}
+#medusa-game .mg-confirmed>.mg-eyebrow::before{content:"✓ ";font-size:13px}
+#medusa-game .mg-confirmed h2{font-size:36px;margin-top:10px}
+#medusa-game .mg-hit{position:absolute;pointer-events:auto;border:0;background:transparent;border-radius:50%;padding:0;color:transparent}
+#medusa-game .mg-dialog{position:absolute;right:32px;top:20px;width:380px;padding:27px;background:#0d1619f5;border:1px solid #344138;border-radius:17px;box-shadow:0 30px 80px #0006;z-index:6;animation:mg-panel .55s cubic-bezier(.2,.8,.2,1)}
+#medusa-game .mg-close{position:absolute;right:15px;top:12px;border:0;background:transparent;color:#95a59c;font-size:25px;width:35px;height:35px}
+#medusa-game .mg-dialog-top{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+#medusa-game .mg-coin{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#86efac13;border:1px solid #86efac33;color:var(--lime);font-size:22px}
+#medusa-game .mg-dialog-top b{font-size:13px;font-weight:500;display:block;margin-bottom:4px}
+#medusa-game .mg-dialog-top div>span{display:block;font-family:monospace;font-size:9px;color:#84978d;letter-spacing:1px}
+#medusa-game .mg-round-state{font-family:monospace;font-size:8px;letter-spacing:1px;color:#a6b8a9;margin-left:auto;margin-right:16px;border:1px solid #52634a55;border-radius:4px;padding:5px}
+#medusa-game h2{font-size:35px;font-weight:400;letter-spacing:-1.3px;line-height:1.08;margin:12px 0 9px}
+#medusa-game .mg-accent{color:var(--lime)}
+#medusa-game .mg-question-time{margin:0 0 19px;color:#8d9d95;font-size:13px}
+#medusa-game .mg-question-time strong{font-weight:400;color:#eaf1eb}
+#medusa-game .mg-price-row{display:flex;justify-content:space-between;gap:12px;font-family:monospace;font-size:13px;letter-spacing:.3px;color:#aab8b1;margin:0 0 17px}
+#medusa-game .mg-price-row>span:last-child{text-align:right}
+#medusa-game .mg-chart{height:320px;margin:0 0 17px;border:1px solid #243024;border-radius:8px;overflow:hidden;background:#0b110c}
+#medusa-game .mg-chart iframe{display:block;width:100%;height:100%;border:0}
+#medusa-game .mg-price-row b{display:block;color:#eaf1eb;font-size:19px;font-weight:600;margin-top:6px}
+#medusa-game .mg-reward{display:flex;justify-content:space-between;align-items:center;padding:18px 17px;background:#182217;border-radius:8px 8px 0 0}
+#medusa-game .mg-reward>div>span{font-size:8px;letter-spacing:1.4px;color:#a5b79b;font-family:monospace}
+#medusa-game .mg-reward strong{display:flex;align-items:baseline;gap:7px;font-size:42px;line-height:1;letter-spacing:-1.5px;font-weight:400;color:var(--lime);margin-top:8px;font-variant-numeric:tabular-nums}
+#medusa-game .mg-reward strong small{font-size:11px;letter-spacing:1px;color:#acbf95}
+#medusa-game .mg-reward .mg-reward-time{text-align:right}
+#medusa-game .mg-reward .mg-reward-time>span{display:block;font-size:23px;letter-spacing:-.5px;color:#e1ebdc;font-variant-numeric:tabular-nums}
+#medusa-game .mg-reward-time small{display:block;font-size:8px;letter-spacing:1px;color:#849977;margin-top:8px}
+#medusa-game .mg-time-track{height:2px;background:#233021;border-radius:0 0 8px 8px;overflow:hidden}
+#medusa-game .mg-time-track>span{display:block;height:100%;width:70%;background:var(--lime);transition:width 1s linear}
+#medusa-game .mg-rule{font-size:10px;color:#8d9d95;line-height:1.5;margin:10px 0 19px}
+#medusa-game .mg-votes{margin-top:16px}
+#medusa-game .mg-votes[hidden]{display:none}
+#medusa-game .mg-votes-label{display:flex;justify-content:space-between;font-family:monospace;font-size:8px;letter-spacing:1px;color:#849977;margin-bottom:6px}
+#medusa-game .mg-votes-bar{height:6px;border-radius:4px;background:#3d2323;overflow:hidden;display:flex}
+#medusa-game .mg-votes-up{display:block;height:100%;background:var(--lime);transition:width .4s ease}
+#medusa-game .mg-votes-split{display:flex;justify-content:space-between;font-family:monospace;font-size:9px;margin-top:5px}
+#medusa-game .mg-votes-split span:first-child{color:var(--lime)}
+#medusa-game .mg-votes-split span:last-child{color:#ff8a8a}
+#medusa-game .mg-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+#medusa-game .mg-choices button{border-radius:8px;padding:19px 10px;display:flex;align-items:center;justify-content:center;letter-spacing:1.5px;font-size:18px;font-weight:600;transition:transform .15s,filter .15s}
+#medusa-game .mg-choices button:hover{transform:translateY(-2px);filter:brightness(1.1)}
+#medusa-game .mg-choices button:disabled{opacity:.35;transform:none}
+#medusa-game .mg-up{color:#122000;background:var(--lime);border:1px solid var(--lime)}
+#medusa-game .mg-down{color:#3d1414;background:#f0a3a3;border:1px solid #f0a3a3}
+#medusa-game .mg-fineprint{text-align:center;font-size:9px;line-height:1.6;color:#7f9188;margin:15px 0 0}
+#medusa-game .mg-confirmed{text-align:center;padding-top:6px}
+#medusa-game .mg-check{display:grid;place-items:center;margin:0 auto 18px;width:52px;height:52px;border:1px solid #86efac55;border-radius:50%;color:var(--lime);font-size:26px;background:#86efac09;box-shadow:0 0 40px #86efac10}
+#medusa-game .mg-confirmed>.mg-eyebrow{color:var(--lime)}
+#medusa-game .mg-confirmed h2{font-size:42px;margin-top:10px}
+#medusa-game .mg-confirmed>p:not(.mg-fineprint){font-size:12px;color:#97a99c;line-height:1.5;margin:8px 0 22px}
+#medusa-game .mg-ticket{display:grid;grid-template-columns:1fr 1fr;text-align:left;border-top:1px dashed #3d5137;border-bottom:1px dashed #3d5137;padding:21px 8px;margin-bottom:19px;gap:15px}
+#medusa-game .mg-ticket>div>span{font-family:monospace;font-size:8px;letter-spacing:1px;color:#96a98e}
+#medusa-game .mg-ticket strong{display:block;color:var(--lime);font-size:27px;font-weight:400;margin-top:9px}
+#medusa-game .mg-ticket strong small{font-size:11px}
+#medusa-game .mg-settle{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:10px;color:#9eafa2;margin-bottom:24px}
+#medusa-game .mg-settle b{color:#d3decf;font-weight:400;font-family:monospace}
+#medusa-game .mg-return{width:100%;background:var(--lime);color:#172105;border:0;border-radius:8px;padding:16px;font-size:12px;letter-spacing:.5px;font-weight:600;display:flex;justify-content:center;align-items:center}
+#medusa-game .mg-progress{display:flex;align-items:center;gap:17px}
+#medusa-game .mg-role-icon{display:grid;place-items:center;width:45px;height:45px;flex-shrink:0;border:1px solid #a1b39733;border-radius:50%;color:#bbceaa;font-size:26px}
+#medusa-game .mg-progress-body{width:100%}
+#medusa-game .mg-progress-body>div:first-child{display:flex;justify-content:space-between;gap:10px;font-family:monospace;font-size:8px;letter-spacing:.6px}
+#medusa-game .mg-progress-body>div:first-child>span{color:#8c9d91}
+#medusa-game .mg-progress-body b{font-weight:400;font-size:8px;color:#d1dfc7}
+#medusa-game .mg-progress-body b span{color:#697764;margin:0 3px}
+#medusa-game .mg-meter{height:3px;background:#1b2921;margin:11px 0 8px;overflow:hidden}
+#medusa-game .mg-meter>span{display:block;height:100%;width:82.667%;background:#a6bb91}
+#medusa-game .mg-progress-body>small{font-family:monospace;color:#8c9d91;font-size:8px;display:flex;gap:4px}
+#medusa-game .mg-progress-body>small>strong{font-weight:400;color:#e2e9dd}
+#medusa-game .mg-progress-body>small>span{margin-left:auto;font-size:8px;color:#677960}
+#medusa-game .mg-stat{border-left:1px solid #ffffff13;padding-left:28px;display:flex;flex-direction:column;gap:6px}
+#medusa-game .mg-stat>span{font-family:monospace;font-size:8px;letter-spacing:1px;color:#94a497}
+#medusa-game .mg-stat>strong{font-size:24px;font-weight:400;color:#e9f3e2;font-variant-numeric:tabular-nums}
+#medusa-game .mg-stat>strong small{font-size:10px;color:#85957c;margin-left:4px}
+#medusa-game .mg-stat>small{font-size:9px;color:#788d7b}
+#medusa-game .mg-stat.has-pending>strong{color:var(--lime)}
+#medusa-game .mg-toast{position:absolute;top:90px;left:50%;transform:translate(-50%,-10px);padding:11px 18px;border:1px solid #86efac33;border-radius:24px;background:#172110;color:#d8edbb;white-space:nowrap;font-size:11px;opacity:0;pointer-events:none;transition:.3s;z-index:10}
+#medusa-game .mg-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+#medusa-game[data-view="focus"] .mg-labels{pointer-events:none}
+#medusa-game[data-view="focus"] .mg-labels button{pointer-events:none}
+#medusa-game .mg-gate{position:absolute;inset:0;z-index:22;display:grid;place-items:center;padding:24px;background:rgba(4,8,13,.45);backdrop-filter:blur(2px);transition:opacity .4s,visibility .4s}
+#medusa-game .mg-gate.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+#medusa-game .mg-gate-card{position:relative;width:100%;max-width:380px;background:#0d1619f5;border:1px solid #344138;border-radius:17px;padding:30px 27px;box-shadow:0 30px 80px #0006;animation:mg-panel .55s cubic-bezier(.2,.8,.2,1)}
+#medusa-game .mg-gate-close{position:absolute;right:15px;top:12px;border:0;background:transparent;color:#95a59c;font-size:25px;width:35px;height:35px;cursor:pointer}
+#medusa-game .mg-gate-close:hover{color:var(--text)}
+#medusa-game .mg-gate-card p{color:#8d9d95;font-size:12px;line-height:1.6;margin:10px 0 22px}
+#medusa-game .mg-credit-popup{position:absolute;inset:0;z-index:23;display:grid;place-items:center;padding:24px;background:rgba(4,8,13,.55);backdrop-filter:blur(2px);transition:opacity .4s,visibility .4s}
+#medusa-game .mg-credit-popup.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+#medusa-game .mg-credit-card{position:relative;width:100%;max-width:360px;text-align:center;background:#0d1619f5;border:1px solid #344138;border-radius:17px;padding:32px 27px;box-shadow:0 30px 80px #0006;animation:mg-panel .55s cubic-bezier(.2,.8,.2,1)}
+#medusa-game .mg-credit-close{position:absolute;right:15px;top:12px;border:0;background:transparent;color:#95a59c;font-size:25px;width:35px;height:35px;cursor:pointer}
+#medusa-game .mg-credit-close:hover{color:var(--text)}
+#medusa-game .mg-credit-card h2{margin:10px 0 0;font-size:26px}
+#medusa-game .mg-credit-card p{color:#8d9d95;font-size:13px;line-height:1.6;margin:12px 0 22px}
+#medusa-game .mg-credit-ok{width:100%;background:var(--lime);color:#122000;border:0;border-radius:8px;padding:13px;font-size:12px;font-weight:600;letter-spacing:.3px}
+#medusa-game .mg-reveal{position:absolute;inset:0;z-index:24;display:grid;place-items:center;padding:24px;background:#04080d;transition:opacity .4s,visibility .4s;overflow-y:auto;overscroll-behavior:contain}
+#medusa-game .mg-reveal.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+#medusa-game .mg-reveal-card{position:relative;width:100%;max-width:560px;background:#0d1619f5;border:1px solid #344138;border-radius:17px;padding:30px 27px 26px;box-shadow:0 30px 80px #0006;animation:mg-panel .55s cubic-bezier(.2,.8,.2,1)}
+#medusa-game .mg-reveal-close{position:absolute;right:15px;top:12px;border:0;background:transparent;color:#95a59c;font-size:25px;width:35px;height:35px;cursor:pointer;z-index:1}
+#medusa-game .mg-reveal-close:hover{color:var(--text)}
+#medusa-game .mg-reveal-loader{min-height:150px;padding:8px 0 4px}
+#medusa-game .mg-reveal-line{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-size:14px;color:#c9d3cf;opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+#medusa-game .mg-reveal-line.is-on{opacity:1;transform:none}
+#medusa-game .mg-reveal-dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:mg-reveal-pulse 1.1s ease-in-out infinite}
+#medusa-game .mg-reveal-line.is-on~.mg-reveal-line.is-on .mg-reveal-dot{animation:none}
+@keyframes mg-reveal-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+#medusa-game .mg-reveal-result{display:none}
+#medusa-game .mg-reveal.is-ready .mg-reveal-loader{display:none}
+#medusa-game .mg-reveal.is-ready .mg-reveal-result{display:block;animation:mg-panel .5s cubic-bezier(.2,.8,.2,1)}
+#medusa-game .mg-reveal-result h2{margin:10px 0 0;font-size:26px;letter-spacing:-.3px}
+#medusa-game .mg-reveal-result h2 b{color:var(--lime);font-weight:inherit}
+#medusa-game .mg-reveal-sub{color:#8d9d95;font-size:13px;line-height:1.5;margin:6px 0 16px}
+#medusa-game .mg-reveal-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .8s}
+#medusa-game .mg-reveal.is-ready .mg-reveal-field{opacity:1}
+#medusa-game .mg-rf-glow{position:absolute;border-radius:50%;will-change:transform}
+#medusa-game .mg-rf-a{width:60vmax;height:60vmax;top:-22%;left:-12%;background:radial-gradient(circle,rgba(134,239,172,.30) 0%,rgba(134,239,172,.12) 30%,rgba(134,239,172,0) 70%);animation:mg-rf-glow-a 26s ease-in-out infinite}
+#medusa-game .mg-rf-b{width:58vmax;height:58vmax;bottom:-22%;right:-16%;background:radial-gradient(circle,rgba(74,120,40,.34) 0%,rgba(74,120,40,.12) 32%,rgba(74,120,40,0) 70%);animation:mg-rf-glow-b 34s ease-in-out infinite}
+#medusa-game .mg-rf-c{width:54vmax;height:54vmax;top:-16%;right:-9%;background:radial-gradient(circle,rgba(40,140,150,.22) 0%,rgba(40,140,150,.08) 32%,rgba(40,140,150,0) 70%);animation:mg-rf-glow-c 44s ease-in-out infinite}
+#medusa-game .mg-rf-v{position:absolute;display:block;font-weight:800;line-height:1;letter-spacing:-.05em;white-space:nowrap;font-variant-numeric:tabular-nums;background-image:linear-gradient(170deg,#edf2f3 0%,#edf2f3 28%,#82909a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;opacity:.12;animation-name:mg-rf-drift;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:transform,opacity}
+#medusa-game .mg-rf-vig{position:absolute;inset:0;background:radial-gradient(52% 46% at 50% 50%,rgba(4,8,13,.88) 0%,rgba(4,8,13,.55) 45%,rgba(4,8,13,0) 100%)}
+@keyframes mg-rf-glow-a{0%,100%{transform:translate(0) scale(1)}50%{transform:translate(12%,10%) scale(1.15)}}
+@keyframes mg-rf-glow-b{0%,100%{transform:translate(0) scale(1.1)}50%{transform:translate(-14%,-8%) scale(.95)}}
+@keyframes mg-rf-glow-c{0%,100%{transform:translate(-20%) scale(1)}50%{transform:translate(0,12%) scale(1.1)}}
+@keyframes mg-rf-drift{0%,100%{opacity:.08;transform:translate(0)}50%{opacity:.26;transform:translate(2.5vw,-3vh)}}
+#medusa-game .mg-reveal.is-ready .mg-reveal-card{max-width:680px;background:transparent;border-color:transparent;box-shadow:none;padding:18px 10px}
+#medusa-game .mg-reveal.is-ready .mg-reveal-result{text-align:center}
+#medusa-game .mg-reveal-frame{position:relative;border-radius:12px;perspective:1100px;margin-top:6px}
+#medusa-game .mg-reveal-frame::before{content:"";position:absolute;inset:-70px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(134,239,172,.16) 0%,rgba(134,239,172,.06) 35%,rgba(134,239,172,0) 70%);z-index:0;pointer-events:none}
+#medusa-game .mg-reveal-tilt{position:relative;will-change:transform;transform:perspective(1100px) rotateX(3deg) rotateY(-8deg);border-radius:12px}
+#medusa-game .mg-reveal.is-ready .mg-reveal-tilt{animation:mg-card-in 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes mg-card-in{0%{opacity:0;transform:perspective(1100px) rotateX(22deg) rotateY(-16deg) translateY(50px) scale(.9)}100%{opacity:1;transform:perspective(1100px) rotateX(3deg) rotateY(-8deg) translateY(0) scale(1)}}
+#medusa-game .mg-reveal-img{position:relative;display:block;width:100%;height:auto;border-radius:12px;border:1px solid #344138;box-shadow:0 40px 100px -25px rgba(0,0,0,.95)}
+#medusa-game .mg-reveal-sheen{position:absolute;inset:0;border-radius:12px;overflow:hidden;pointer-events:none}
+#medusa-game .mg-reveal-sheen::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-40%;width:34%;background:linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(230,255,160,.22) 50%,rgba(255,255,255,0) 100%);transform:skewX(-18deg) translateX(0);opacity:0}
+#medusa-game .mg-reveal.is-ready .mg-reveal-sheen::after{animation:mg-sheen 1.3s .55s ease-out}
+@keyframes mg-sheen{0%{opacity:0;transform:skewX(-18deg) translateX(0)}20%{opacity:1}100%{opacity:0;transform:skewX(-18deg) translateX(460%)}}
+#medusa-game .mg-reveal-glare{pointer-events:none;position:absolute;inset:0;border-radius:12px;opacity:0;mix-blend-mode:plus-lighter;background:radial-gradient(circle at calc(var(--gx,50)*1%) calc(var(--gy,50)*1%),rgba(230,255,160,.26) 0%,rgba(230,255,160,.08) 26%,rgba(230,255,160,0) 58%)}
+#medusa-game .mg-reveal.is-ready .mg-reveal-actions{max-width:520px;margin:18px auto 0}
+#medusa-game .mg-reveal-more{margin:14px 0 0;text-align:center;font-size:12px;color:#7f9188}
+#medusa-game .mg-reveal-more a{color:var(--lime);text-decoration:none;border-bottom:1px solid rgba(134,239,172,.35)}
+#medusa-game .mg-reveal-more a:hover{border-bottom-color:var(--lime)}
+@media(prefers-reduced-motion:reduce){#medusa-game .mg-rf-glow,#medusa-game .mg-rf-v,#medusa-game .mg-reveal-tilt,#medusa-game .mg-reveal-sheen::after{animation:none!important}}
+#medusa-game .mg-reveal-bonus{margin:14px 0 0;font-size:12px;color:#8d9d95;text-align:center}
+#medusa-game .mg-reveal-bonus b{color:var(--lime)}
+#medusa-game .mg-reveal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+#medusa-game .mg-reveal-actions button{flex:1 1 calc(50% - 5px);min-width:140px;border-radius:8px;padding:13px;font-size:12px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s,filter .15s}
+#medusa-game .mg-reveal-dl,#medusa-game .mg-reveal-cp{background:transparent;color:var(--lime);border:1px solid var(--lime)}
+#medusa-game .mg-reveal-dl:hover,#medusa-game .mg-reveal-cp:hover{background:var(--lime);color:#122000}
+#medusa-game .mg-reveal-actions button.is-done{background:rgba(134,239,172,.14);color:var(--lime)}
+#medusa-game .mg-reveal-share{background:var(--lime);color:#122000;border:0}
+#medusa-game .mg-reveal-share:hover{filter:brightness(1.08)}
+#medusa-game .mg-reveal-ok{background:transparent;color:var(--lime);border:1px solid var(--lime)}
+#medusa-game .mg-reveal-ok:hover{background:var(--lime);color:#122000}
+@media(max-width:600px){#medusa-game .mg-reveal{padding:14px;align-items:safe center}#medusa-game .mg-reveal-card{padding:22px 18px 18px}#medusa-game .mg-reveal-result h2{font-size:21px}}
+#medusa-game .mg-gate-card h2{margin:12px 0 0;font-size:30px}
+#medusa-game .mg-gate-form{display:flex;flex-direction:column;gap:12px}
+#medusa-game .mg-gate-form label{display:flex;flex-direction:column;gap:7px;font-family:monospace;font-size:9px;letter-spacing:1.4px;color:#96a98e}
+#medusa-game .mg-wallet-disclaimer{margin:-4px 0 2px;font-size:10px;line-height:1.4;color:#7f9188}
+#medusa-game .mg-gate-form input{background:#0f1a17;border:1px solid #2a3a30;border-radius:8px;padding:12px 13px;color:var(--text);font-size:13px;font-family:Arial,Helvetica,sans-serif;transition:border-color .15s}
+#medusa-game .mg-gate-form input::placeholder{color:#546056}
+#medusa-game .mg-gate-form input:focus{outline:0;border-color:var(--lime)}
+#medusa-game .mg-gate-submit{margin-top:4px;width:100%;background:var(--lime);color:#172105;border:0;border-radius:8px;padding:15px;font-size:12px;letter-spacing:.5px;font-weight:500;display:flex;justify-content:center;align-items:center;gap:10px;transition:opacity .2s,transform .15s,filter .15s}
+#medusa-game .mg-gate-submit:not(:disabled):hover{transform:translateY(-2px);filter:brightness(1.08)}
+#medusa-game .mg-gate-submit:disabled{opacity:.35;cursor:not-allowed}
+#medusa-game .mg-gate-skip{display:block;margin:14px auto 0;background:transparent;border:0;color:#7f9188;font-size:11px;letter-spacing:.3px;text-decoration:underline;text-underline-offset:3px;padding:4px}
+#medusa-game .mg-gate-skip:hover{color:var(--text)}
+#medusa-game .mg-gate .mg-fineprint{margin-top:18px}
+#medusa-game .mg-gate-error{color:#ff8080;font-size:11px;text-align:center;margin:10px 0 0}
+#medusa-game .mg-gate-error[hidden]{display:none}
+#medusa-game .mg-gate-value{margin:12px 0 0;text-align:center;font-size:11px;color:#7f9188}
+#medusa-game .mg-gate-value a{color:var(--lime);text-decoration:none;border-bottom:1px solid rgba(134,239,172,.35)}
+#medusa-game .mg-gate-value a:hover{border-bottom-color:var(--lime)}
+@media(max-width:600px){#medusa-game .mg-gate-card{padding:24px 20px}#medusa-game .mg-gate-card h2{font-size:26px}}
+/* a phone held sideways is ~390px tall: the card was taller than the screen and nothing
+   scrolled, so the X field and both buttons were unreachable */
+#medusa-game .mg-gate{overflow-y:auto;overscroll-behavior:contain;align-items:safe center}
+@media(max-height:620px){
+ #medusa-game .mg-gate{padding:14px}
+ #medusa-game .mg-gate-card{padding:18px 18px 16px;max-width:420px}
+ #medusa-game .mg-gate-card h2{font-size:21px;line-height:1.1}
+ #medusa-game .mg-gate-card>p{font-size:11px;line-height:1.45;margin:8px 0 12px}
+ #medusa-game .mg-gate-form{gap:8px}
+ #medusa-game .mg-gate-form input{padding:9px 11px;font-size:12px}
+ #medusa-game .mg-gate-form label{gap:4px}
+ #medusa-game .mg-gate-submit{padding:11px;margin-top:2px}
+ #medusa-game .mg-gate-skip{margin-top:9px}
+ #medusa-game .mg-gate-card .mg-eyebrow{font-size:8px}
+}
+@keyframes mg-panel{from{opacity:0;transform:translateY(15px) scale(.98)}to{opacity:1;transform:none}}
+@media(min-width:1200px){#medusa-game .mg-ocean{min-height:580px;max-height:850px}}
+@media(max-width:800px){#medusa-game .mg-dialog{width:340px;right:20px;padding:23px}#medusa-game .mg-role-icon{display:none}#medusa-game .mg-progress-body>small>span{display:none}}
+@media(max-width:600px){#medusa-game .mg-brand{font-size:12px;letter-spacing:3px;gap:8px}#medusa-game .mg-ocean{height:650px}#medusa-game .mg-eyebrow{font-size:8px;letter-spacing:1px}#medusa-game .mg-dialog{left:14px;right:14px;top:235px;width:auto;padding:20px;max-height:none}#medusa-game[data-view="focus"] .mg-ocean{height:825px}#medusa-game .mg-dialog-top{margin-bottom:17px}#medusa-game h2{font-size:31px}#medusa-game .mg-dialog .mg-question-label{font-size:8px}#medusa-game .mg-progress-body>small>span{display:inline}#medusa-game .mg-stat{border-left:0;padding:0}#medusa-game .mg-stat:last-child{text-align:right}#medusa-game .mg-role-icon{display:grid;width:32px;height:32px;font-size:20px}#medusa-game .mg-jelly-label{min-width:108px;padding:9px 11px}#medusa-game .mg-label-head{font-size:13px}#medusa-game .mg-toast{font-size:10px;max-width:94%;white-space:normal;text-align:center}}
+@media(prefers-reduced-motion:reduce){#medusa-game *,#medusa-game *::before{animation:none!important;transition:none!important}}
+@media(min-width:900px) and (max-height:850px){#medusa-game .mg-ocean{max-height:calc(100vh - 230px);min-height:450px}#medusa-game .mg-dialog{top:12px;transform:scale(.84);transform-origin:top right;animation:mg-panel-compact .55s cubic-bezier(.2,.8,.2,1)}}
+@keyframes mg-panel-compact{from{opacity:0;transform:translateY(15px) scale(.81)}to{opacity:1;transform:scale(.84)}}
+
+</style>
+<script>
+(() => {
+ const root=document.getElementById('medusa-game');
+ const ocean=root.querySelector('.mg-ocean'), canvas=root.querySelector('.mg-canvas'), ctx=canvas.getContext('2d');
+ const $=s=>root.querySelector(s), $$=s=>[...root.querySelectorAll(s)];
+ const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TAU=Math.PI*2;
+
+
+ let renderOpacity=1;
+ const textures={};
+ for(const [name,rgb] of Object.entries({white:'233,239,241',lime:'199,250,0',pink:'255,60,190',cyan:'80,220,255',purple:'190,100,255',orange:'255,150,40'})){
+   const size=64,mid=size/2;
+   const c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d');
+   const grad=g.createRadialGradient(mid,mid,0,mid,mid,mid);
+   grad.addColorStop(0,`rgba(${rgb},.92)`);grad.addColorStop(.22,`rgba(${rgb},.55)`);grad.addColorStop(.55,`rgba(${rgb},.14)`);grad.addColorStop(1,`rgba(${rgb},0)`);
+   g.fillStyle=grad;g.fillRect(0,0,size,size);
+   const blurred=document.createElement('canvas');blurred.width=blurred.height=size;
+   const bg=blurred.getContext('2d');bg.filter='blur(5px)';bg.drawImage(c,0,0);
+   textures[name]=blurred;
+ }
+
+ const JELLY_PALETTES=[
+   {spark:[199,255,0],glow:'lime',tint:'199,250,0',bright:'207,255,57'},
+   {spark:[255,45,180],glow:'pink',tint:'255,60,190',bright:'255,140,220'},
+   {spark:[45,220,255],glow:'cyan',tint:'60,210,255',bright:'150,240,255'},
+   {spark:[190,70,255],glow:'purple',tint:'190,90,255',bright:'225,160,255'},
+   {spark:[225,230,235],glow:'white',tint:'205,211,218',bright:'246,248,250'},
+   {spark:[255,140,20],glow:'orange',tint:'255,150,40',bright:'255,195,110'},
+ ];
+ function palette(jf){return JELLY_PALETTES[jf.paletteIndex%JELLY_PALETTES.length];}
+ // A dot is a pre-rendered disc blitted with drawImage: thousands of beginPath/arc/fill
+ // calls per frame were the ocean's whole CPU cost. One 32px sprite per colour, cached.
+ const dotSprites=new Map();
+ function dotSprite(rgb){
+  let c=dotSprites.get(rgb);
+  if(!c){c=document.createElement('canvas');c.width=c.height=32;const g=c.getContext('2d');g.fillStyle=`rgb(${rgb})`;g.beginPath();g.arc(16,16,15,0,TAU);g.fill();dotSprites.set(rgb,c);}
+  return c;
+ }
+ function dot(x,y,r,a,rgb='224,233,250'){
+  const al=Math.max(0,Math.min(1,a))*renderOpacity;if(al<=0||r<=0)return;
+  ctx.globalAlpha=al;ctx.drawImage(dotSprite(rgb),x-r,y-r,r*2,r*2);ctx.globalAlpha=1;
+ }
+ function glow(x,y,r,a,name='white'){ctx.globalAlpha=a*renderOpacity;ctx.drawImage(textures[name],x-r,y-r,r*2,r*2);ctx.globalAlpha=1;}
+ const hash=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v);};
+ function spark(tt,id){
+   const clock=tt/(1.4+hash(id)*3.4)+hash(id+7)*23;
+   const cycle=Math.floor(clock),phase=clock-cycle;
+   const duration=.13+hash(id*3+cycle*19)*.20;
+   if(phase>duration)return 0;
+   return Math.pow(Math.sin(Math.PI*phase/duration),1.35);
+ }
+ function particle(x,y,r,a,id,tt,burst,pal,base=[232,238,242]){
+   const light=spark(tt,id)*(1+burst*.3),amount=Math.min(1,light*1.35);
+   const rgb=base.map((v,i)=>Math.round(v+(pal.spark[i]-v)*amount)).join(',');
+   dot(x,y,r*(1+amount*.12),Math.min(1,a+amount*.8),rgb);
+   if(light>.72)glow(x,y,Math.min(3.5,r*2.5),light*.34,pal.glow);
+ }
+ function yaw(tt){return Math.sin(tt*.32)*.26+Math.sin(tt*.117)*.065;}
+ function geometry(tt,burst,u,a,squash=.75,j=0){
+   const breath=Math.sin(tt*1.65),radius=164*(1+.035*breath+burst*.025);
+   const yy=Math.sqrt(Math.max(0,1-u*u));
+   const angle=a+yaw(tt);
+   const rib=Math.cos(a*10+u*.48+Math.sin(tt*.6)*.12);
+   const fold=1+.065*rib*Math.pow(u,.7)+.012*Math.sin(a*12+tt*1.2)*u*u;
+   const r=radius*u*fold;
+   const x=Math.cos(angle)*r*squash,z=Math.sin(angle)*r;
+   const ripple=(Math.sin(a*9-tt*1.7)+Math.sin(a*17+tt*.9))*(u*u*2.2);
+   const y=-yy*(128-4*breath)-rib*10*Math.sin(u*Math.PI*.93)+ripple+(j-.5)*3;
+   return {x:x+Math.sin(tt*.31)*6,y:y+z*.28+Math.sin(tt*1.65)*5,z,yy,angle};
+ }
+
+ function makeSeed(n){let s=n>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+ function makeJellyfish(seedBase,fx,fy){
+   const rand=makeSeed(seedBase);
+   const dots=Array.from({length:1700},()=>({u:rand(),a:rand()*TAU,j:rand(),s:.36+rand()*.72,phase:rand()*TAU}));
+   const rim=Array.from({length:260},()=>({a:rand()*TAU,u:.965+rand()*.035,j:rand(),s:.3+rand()*.6,phase:rand()*TAU}));
+   const nerves=Array.from({length:10},()=>({u:.1+rand()*.8,a:rand()*TAU,s:1+rand()*1.7,phase:rand()*TAU}));
+   const strands=Array.from({length:10},(_,i)=>({a:i/10*TAU,len:(118+rand()*112)*1.68,phase:rand()*TAU,beads:Math.round((20+Math.floor(rand()*12))*1.2)}));
+   return {
+     dots,rim,nerves,strands,
+     fx,fy,x:0,y:0,vx:(rand()-.5)*8,vy:(rand()-.5)*8,
+     wf:[.05+rand()*.09,.04+rand()*.08,.05+rand()*.09,.04+rand()*.08],
+     wp:[rand()*TAU,rand()*TAU,rand()*TAU,rand()*TAU],
+     phase:rand()*TAU,timeOffset:rand()*40,
+     sizeFreq:.09+rand()*.14,sizePhase:rand()*TAU,sizeAmp:.14+rand()*.10,
+     depthFreq:.018+rand()*.022,depthPhase:rand()*TAU,
+     sizeFactor:1,depth:0,squashNow:.75,renderScaleNow:1,collisionRadiusNow:80,
+     burst:0,
+   };
+ }
+
+
+ function drawJellyfish(jf,opacity=1,extraTilt=0,ripples=null){
+   renderOpacity=opacity*(1+(jf.hoverGlow||0)*.3);
+ const tt=t+jf.timeOffset,burst=jf.burst,squash=jf.squashNow;
+   const localVx=Math.max(-30,Math.min(30,jf.vx/baseRenderScale));
+   ctx.save();
+   ctx.translate(jf.x,jf.y);
+   ctx.rotate(Math.sin(tt*.57)*.045+Math.sin(tt*.23)*.018-localVx*.0016+extraTilt);
+   ctx.scale(jf.renderScaleNow,jf.renderScaleNow);
+   const pal=palette(jf),tint=pal.tint;
+   for(const s of jf.strands){
+     const base=geometry(tt,burst,1,s.a,squash),front=(Math.sin(base.angle)+1)/2;
+     let prev=null;
+     for(let k=0;k<s.beads;k++){
+       const q=k/(s.beads-1),wave=tt*1.25-q*4.5+s.phase;
+       const lag=yaw(tt-q*1.6)-yaw(tt);
+       const twistX=(Math.cos(base.angle+lag)-Math.cos(base.angle))*164*squash;
+       const twistZ=(Math.sin(base.angle+lag)-Math.sin(base.angle))*164;
+       const x=base.x+twistX+Math.sin(wave)*(3+q*20)+Math.sin(q*10-tt*.85+s.phase)*q*6-q*12-localVx*q*q*.8;
+       const y=base.y+twistZ*.28+q*s.len*(1+.025*Math.sin(tt*1.65-.7));
+       const light=spark(tt,20000+s.phase*103+k*17);
+       const a=Math.min(1,(.28+front*.48)*(1-q*.63)*(.72+.28*Math.sin(q*11-tt*2+s.phase)**2)+light*.75);
+       if(prev){ctx.strokeStyle=`rgba(${tint},${a*.25*renderOpacity})`;ctx.lineWidth=1.15;ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(x,y);ctx.stroke();}
+       const r=(1.95+front*1.05)*(1-q*.6);
+       dot(x,y,r*(1+light*.22),a,light>.3?pal.bright:tint);
+       if(light>.6)glow(x,y,3.5+light*2,light*.45,pal.glow);
+       if(k%5===0||light>.65)dot(x,y,r*(.4+light*.2),a*.95,'238,255,186');
+       prev={x,y};
+     }
+   }
+   for(const p of jf.dots){
+     const u=Math.sqrt(1-(1-p.u)*(1-p.u));const v=geometry(tt,burst,u,p.a,squash,p.j);
+     const normal=Math.abs(Math.sin(v.angle)*u-.28*v.yy)/1.04;
+     const edge=Math.pow(1-Math.min(1,normal),7);
+     const twinkle=.65+.35*Math.sin(tt*(.9+p.j)+p.phase)**2;
+     const ribLight=.64+.36*(.5+.5*Math.cos(p.a*10+u*.48+Math.sin(tt*.6)*.12));
+     const a=(.31+.68*edge+burst*.12)*twinkle*ribLight;
+     let rippleBoost=0;
+     if(ripples){
+      for(const rip of ripples){
+       const age=t-rip.startT;
+       if(age<0||age>RIPPLE_LIFETIME)continue;
+       const ringR=age*RIPPLE_SPEED,band=Math.abs(Math.hypot(v.x-rip.x,v.y-rip.y)-ringR);
+       if(band<RIPPLE_WIDTH){const s=(1-band/RIPPLE_WIDTH)*(1-age/RIPPLE_LIFETIME);if(s>rippleBoost)rippleBoost=s;}
+      }
+     }
+     particle(v.x,v.y,p.s*(1.08+edge*.35)*(1+rippleBoost*.6),Math.min(1,a+rippleBoost*.7),p.phase*1137+p.j*7919,tt,burst,pal);
+     if(rippleBoost>.12)glow(v.x,v.y,3+rippleBoost*4,rippleBoost*.5,pal.glow);
+   }
+   for(let rib=0;rib<10;rib++){
+     for(let k=5;k<75;k+=2){
+       const u=k/75,a=(rib*TAU-u*.48-Math.sin(tt*.6)*.12)/10;
+       const v=geometry(tt,burst,u,a,squash),front=(Math.sin(v.angle)+1)/2;
+       particle(v.x,v.y,.6+.24*Math.sin(u*Math.PI),(.2+front*.3)*Math.sin(u*Math.PI*.92),31000+rib*173+k*13,tt,burst,pal);
+     }
+   }
+   for(const p of jf.rim){
+     const v=geometry(tt,burst,p.u,p.a,squash,p.j),front=(Math.sin(v.angle)+1)/2;
+     particle(v.x,v.y,p.s*1.2,.22+front*.32,41000+p.phase*897+p.j*691,tt,burst,pal);
+   }
+   for(const p of jf.nerves){
+     const v=geometry(tt,burst,p.u,p.a,squash,p.phase*.1);const a=.17+.23*(1+Math.sin(tt*1.4+p.phase))/2;
+     particle(v.x,v.y,p.s*.65,a*.8,51000+p.phase*117,tt,burst,pal);
+   }
+   ctx.restore();renderOpacity=1;
+ }
+
+ const ASSET_POOL=[
+  {symbol:'BTC',name:'Bitcoin',coin:'₿',base:97420},
+  {symbol:'ETH',name:'Ethereum',coin:'Ξ',base:2648.50},
+  {symbol:'SOL',name:'Solana',coin:'◎',base:148.24},
+  {symbol:'DOGE',name:'Dogecoin',coin:'Ð',base:.192},
+  {symbol:'AVAX',name:'Avalanche',coin:'Λ',base:34.10},
+  {symbol:'LINK',name:'Chainlink',coin:'L',base:14.80},
+  {symbol:'XRP',name:'Ripple',coin:'X',base:2.34},
+  {symbol:'ADA',name:'Cardano',coin:'₳',base:.71},
+ ];
+ // ⚠️ REPLACE both values below with YOUR OWN Supabase project's URL and
+ // publishable/anon key (Project Settings → API). These two are safe to be
+ // public (read-only, enforced by RLS) — but must point at YOUR project, not
+ // the original developer's. See MIGRATION_GUIDE.md step 1.
+ const SUPABASE_URL='https://kpnabizvejcqriisiiaz.supabase.co'; // e.g. https://xxxxxxxx.supabase.co
+ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwbmFiaXp2ZWpjcXJpaXNpaWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODY5MTAsImV4cCI6MjEwNTY2MjkxMH0.dzPAWK52EwIYnwcFF-8vYa0p5wSJSYuMg9OqPMHz8LQ'; // the "anon" / "publishable" key, NOT service_role
+ // No client-side price polling at all: a token's price is only ever fetched
+ // twice, server-side (rounds.js) — once at birth, once at death. The only
+ // thing this fallback pool is for is the rare moment before the first
+ // /api/rounds sync lands, when a jellyfish briefly needs *some* placeholder
+ // asset to render — purely cosmetic, never used for real resolution.
+ // v2: the top-left corner belongs to the copy, so the first slot sits right of it
+ const SLOTS=[[.55,.16],[.85,.28],[.85,.66],[.50,.82],[.20,.82],[.65,.50]];
+ // v2 grid order, top row first: small up top where the copy lives, big along the bottom
+ const SLOT_SIZE_MULT=[0.95,0.9,1.0,1.25,1.3,1.2];
+ const TIERS=[{name:'BACTERIA',min:0},{name:'PLANKTON',min:200},{name:'SHRIMP',min:600},{name:'FISH',min:1500},{name:'DOLPHIN',min:4000},{name:'SHARK',min:8000},{name:'WHALE',min:15000},{name:'MEGALODON',min:30000}];
+ const ROUND_DURATION=3600;
+ function pickAsset(exclude){
+  const pool=ASSET_POOL.filter(a=>!exclude.includes(a.symbol));const src=pool.length?pool:ASSET_POOL;return src[Math.floor(Math.random()*src.length)];
+ }
+ function freshAssetFor(exclude){
+  const t=pickAsset(exclude);
+  const jitter=1+(Math.random()*.05-.025);return {symbol:t.symbol,name:t.name,coin:t.coin,start:t.base,current:Math.round(t.base*jitter*1e6)/1e6};
+ }
+ function tierFor(pts){let cur=TIERS[0],idx=0;for(let i=0;i<TIERS.length;i++){if(pts>=TIERS[i].min){cur=TIERS[i];idx=i;}}return {cur,next:TIERS[idx+1]||null};}
+ let t=0,last=0,raf=0,vw=1024,vh=586,dpr=1,baseRenderScale=.45;
+ // Adaptive resolution. The ocean is thousands of 2D-canvas dots per frame, so at a 2x
+ // pixel ratio a laptop GPU falls to ~20 fps. The canvas starts at the device ratio
+ // capped at 1.5 and steps down by a quarter whenever frames run long for a second,
+ // never below 0.75; it steps back up when frames are comfortably fast.
+ // Resolution. The ocean is ~18k sprite blits a frame, so the canvas is sized once from
+ // the device ratio (capped at 1.5) and the screen area (capped at ~3.2M canvas pixels,
+ // which is what a 2.5k-wide window at 1.15x costs). If frames still run long for three
+ // solid seconds it steps down once or twice (1.0, then .75) and never back up: every
+ // resize re-creates the canvas, and hopping between levels reads as blinking.
+ const MAX_CANVAS_PX=3.2e6,DOWN_STEPS=[1,.75];
+ let dprCap=1.5,downIdx=0,frameEma=16.7,slowSince=0,dprChangedAt=0;
+ function applyDpr(){
+  const areaCap=Math.sqrt(MAX_CANVAS_PX/Math.max(1,vw*vh));
+  dpr=Math.max(.5,Math.min(window.devicePixelRatio||1,dprCap,areaCap));
+  canvas.width=Math.round(vw*dpr);canvas.height=Math.round(vh*dpr);
+ }
+ function tuneDpr(now,ms){
+  frameEma+=(ms-frameEma)*.06;
+  if(downIdx>=DOWN_STEPS.length||now-dprChangedAt<4000)return;
+  if(frameEma>30){if(!slowSince)slowSince=now;if(now-slowSince>3000){dprCap=Math.min(dprCap,DOWN_STEPS[downIdx++]);applyDpr();dprChangedAt=now;slowSince=0;frameEma=16.7;}}
+  else slowSince=0;
+ }
+ let selected=null,returning=null,focusAmount=0,chosenView='ocean',focusOrigin=null;
+ let walkTimers=[],walkActive=false,toastTimer=0,clockPrevious=-1;
+ const options={speed:1,zoom:1,showHints:true};
+ const initialBank=1240;
+ let bank=initialBank,totalCalls=0,correctCalls=0;
+ const jellies=[];
+ const RESPAWN_STAGGER=ROUND_DURATION/SLOTS.length;
+ for(let i=0;i<SLOTS.length;i++){
+  const [fx,fy]=SLOTS[i];
+  const asset=freshAssetFor(jellies.map(j=>j.asset.symbol));
+  const age=i*RESPAWN_STAGGER*1000;
+  jellies.push(Object.assign(makeJellyfish(1000+i*7919,fx,fy),{asset,slotFx:fx,slotFy:fy,paletteIndex:i,sizeMult:SLOT_SIZE_MULT[i%SLOT_SIZE_MULT.length],driftSpeed:.5+Math.random()*1.1,driftWobble:Math.random()*TAU,prediction:null,start:Date.now()-age,end:Date.now()+ROUND_DURATION*1000-age,phaseState:'alive',fadeAlpha:1,fadeTimer:0,roundId:null,votes:{up:0,down:0}}));
+ }
+ let roundState=new Array(SLOTS.length).fill(null),roundsBootstrapped=false;
+ async function syncRounds(){
+  try{
+   const r=await fetch('/api/rounds');
+   if(!r.ok)return;
+   const rows=await r.json();
+   for(const row of rows)roundState[row.slot]=row;
+   if(!roundsBootstrapped){roundsBootstrapped=true;bootstrapRoundsIntoJellies();}
+  }catch{}
+ }
+ function bootstrapRoundsIntoJellies(){
+  jellies.forEach((jf,i)=>{
+   const row=roundState[i];if(!row)return;
+   jf.asset={symbol:row.symbol,name:row.name,coin:row.coin_glyph,address:(row.address||''),start:parseFloat(row.start_price),current:parseFloat(row.start_price),isReal:true};
+   jf.start=new Date(row.started_at).getTime();jf.end=new Date(row.ends_at).getTime();jf.roundId=row.round_id;
+  });
+  updateUI();
+ }
+ syncRounds();
+ setInterval(syncRounds,10000);
+ const stars=Array.from({length:100},(_,i)=>({u:hash(811+i),v:hash(1400+i),s:.3+hash(i+300)*.7,phase:hash(i+200)*TAU}));
+ let viewMode='market';
+ const uiVersion='v2';
+ root.classList.add('is-v2');
+ document.body.classList.add('v2-full');
+ const SOLO_TILT=.78,SOLO_BASE_SCALE=1.26,SOLO_PULSE_FREQ=1.1;
+ const soloJelly=Object.assign(makeJellyfish(777777,.5,.45),{paletteIndex:0,burst:0,squashNow:.75,depth:0,renderScaleNow:SOLO_BASE_SCALE,x:0,y:0,vx:0,vy:0});
+ const soloStream=Array.from({length:160},()=>({x:Math.random()*1400,y:Math.random()*800,px:0,py:0,s:.22+Math.random()*.5,seed:Math.random()*90000,ang:(Math.random()-.5)*.85,spd:.75+Math.random()*.6,hit:0,hitColor:null,hitGlow:null,inside:false}));
+ let soloRipples=[];
+ const RIPPLE_LIFETIME=.35,RIPPLE_SPEED=80,RIPPLE_WIDTH=8;
+ function soloToLocal(px,py){
+  const dx=px-soloJelly.x,dy=py-soloJelly.y,rot=SOLO_TILT,cosR=Math.cos(-rot),sinR=Math.sin(-rot);
+  const rx=dx*cosR-dy*sinR,ry=dx*sinR+dy*cosR;
+  return {x:rx/soloJelly.renderScaleNow,y:ry/soloJelly.renderScaleNow};
+ }
+ function updateSolo(dt){
+  soloJelly.x=vw*.57;soloJelly.y=vh*.5;
+  const pulse=Math.sin(t*SOLO_PULSE_FREQ);
+  soloJelly.renderScaleNow=SOLO_BASE_SCALE*(1+pulse*.07);
+  soloJelly.squashNow=.75+Math.sin(t*.31)*.05;
+  soloJelly.burst=Math.max(0,pulse)*.3;
+  soloJelly.vx=Math.cos(SOLO_TILT)*42;
+  soloJelly.vy=Math.sin(SOLO_TILT)*42;
+  const speed=90,baseAngle=Math.PI-SOLO_TILT;
+  const cx=soloJelly.x,cy=soloJelly.y,rad=164*soloJelly.renderScaleNow*1.45,hitRad=164*soloJelly.renderScaleNow*.92;
+  for(const p of soloStream){
+   p.px=p.x;p.py=p.y;
+   const angle=baseAngle+p.ang,vx=Math.cos(angle)*speed*p.spd,vy=Math.sin(angle)*speed*p.spd;
+   p.x+=vx*dt;p.y+=vy*dt;
+   const ddx=p.x-cx,ddy=p.y-cy,dist=Math.hypot(ddx,ddy)||1;
+   const wasIn=p.inside;p.inside=dist<hitRad;
+   if(p.inside&&!wasIn){
+    p.hit=1;
+    const hitPal=palette(soloJelly);p.hitColor=hitPal.tint;p.hitGlow=hitPal.glow;
+    const loc=soloToLocal(p.x,p.y);
+    soloRipples.push({x:loc.x,y:loc.y,startT:t});
+   }
+   p.hit=Math.max(0,p.hit-dt*2.4);
+   if(dist<rad){
+    const nx=ddx/dist,ny=ddy/dist,tx=-ny,ty=nx,strength=(1-dist/rad)*150;
+    p.x+=(tx*strength+nx*strength*.35)*dt;
+    p.y+=(ty*strength+ny*strength*.35)*dt;
+   }
+   if(p.x<-30){p.x+=vw+60;p.px=p.x;}else if(p.x>vw+30){p.x-=vw+60;p.px=p.x;}
+   if(p.y<-30){p.y+=vh+60;p.py=p.y;}else if(p.y>vh+30){p.y-=vh+60;p.py=p.y;}
+   if(Math.hypot(p.x-p.px,p.y-p.py)>60){p.px=p.x;p.py=p.y;}
+  }
+  soloRipples=soloRipples.filter(r=>t-r.startT<RIPPLE_LIFETIME);
+  if(soloRipples.length>6)soloRipples.splice(0,soloRipples.length-6);
+ }
+ function drawSoloStream(){
+  const pal=palette(soloJelly);
+  for(const p of soloStream){
+   if(p.hit>.02){
+    ctx.strokeStyle=`rgba(${p.hitColor},${.14+p.hit*.35})`;ctx.lineWidth=1+p.hit*.6;ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+    dot(p.x,p.y,p.s*(1+p.hit*1.1),Math.min(1,.35+p.hit*.85),p.hitColor);
+    glow(p.x,p.y,p.s*2.6+p.hit*4,p.hit*.55,p.hitGlow);
+   }else{
+    ctx.strokeStyle=`rgba(${pal.tint},.09)`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+    particle(p.x,p.y,p.s,.05,p.seed,t,0,pal);
+   }
+  }
+ }
+ const NEUTRAL_PAL={spark:[225,230,235],glow:'white'};
+ const marketStream=Array.from({length:280},()=>({x:Math.random()*1400,y:Math.random()*800,px:0,py:0,s:.2+Math.random()*.45,seed:Math.random()*90000,ang:(Math.random()-.5)*.85,spd:.75+Math.random()*.6,hit:0,hitColor:null,hitGlow:null,inside:false}));
+ let marketRipples=[];
+ function marketToLocal(px,py,jf){
+  const dx=px-jf.x,dy=py-jf.y,cosR=Math.cos(-SOLO_TILT),sinR=Math.sin(-SOLO_TILT);
+  const rx=dx*cosR-dy*sinR,ry=dx*sinR+dy*cosR;
+  return {x:rx/jf.renderScaleNow,y:ry/jf.renderScaleNow};
+ }
+ function updateMarketStream(dt){
+  const speed=90,baseAngle=Math.PI-SOLO_TILT;
+  const aliveJ=jellies.filter(j=>j.phaseState==='alive');
+  for(const p of marketStream){
+   p.px=p.x;p.py=p.y;
+   const angle=baseAngle+p.ang,vx=Math.cos(angle)*speed*p.spd,vy=Math.sin(angle)*speed*p.spd;
+   p.x+=vx*dt;p.y+=vy*dt;
+   let hitNow=false;
+   for(const jf of aliveJ){
+    const rad=164*jf.renderScaleNow*1.45,hitRad=164*jf.renderScaleNow*.92;
+    const ddx=p.x-jf.x,ddy=p.y-jf.y,dist=Math.hypot(ddx,ddy)||1;
+    if(dist<hitRad){
+     hitNow=true;
+     if(!p.inside){
+      p.hit=1;
+      const hitPal=palette(jf);p.hitColor=hitPal.tint;p.hitGlow=hitPal.glow;
+      const loc=marketToLocal(p.x,p.y,jf);marketRipples.push({x:loc.x,y:loc.y,startT:t,jf});
+     }
+    }
+    if(dist<rad){
+     const nx=ddx/dist,ny=ddy/dist,tx=-ny,ty=nx,strength=(1-dist/rad)*150;
+     p.x+=(tx*strength+nx*strength*.35)*dt;
+     p.y+=(ty*strength+ny*strength*.35)*dt;
+    }
+   }
+   p.inside=hitNow;
+   p.hit=Math.max(0,p.hit-dt*2.4);
+   if(p.x<-30){p.x+=vw+60;p.px=p.x;}else if(p.x>vw+30){p.x-=vw+60;p.px=p.x;}
+   if(p.y<-30){p.y+=vh+60;p.py=p.y;}else if(p.y>vh+30){p.y-=vh+60;p.py=p.y;}
+   if(Math.hypot(p.x-p.px,p.y-p.py)>60){p.px=p.x;p.py=p.y;}
+  }
+  marketRipples=marketRipples.filter(r=>t-r.startT<RIPPLE_LIFETIME);
+  if(marketRipples.length>18)marketRipples.splice(0,marketRipples.length-18);
+ }
+ function drawMarketStream(){
+  for(const p of marketStream){
+   if(p.hit>.02){
+    ctx.strokeStyle=`rgba(${p.hitColor},${.14+p.hit*.35})`;ctx.lineWidth=1+p.hit*.6;ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+    dot(p.x,p.y,p.s*(1+p.hit*1.1),Math.min(1,.35+p.hit*.85),p.hitColor);
+    glow(p.x,p.y,p.s*2.6+p.hit*4,p.hit*.55,p.hitGlow);
+   }else{
+    ctx.strokeStyle='rgba(200,210,215,.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+    particle(p.x,p.y,p.s,.05,p.seed,t,0,NEUTRAL_PAL);
+   }
+  }
+ }
+ const labelLayer=$('.mg-labels'), dialog=$('.mg-dialog');
+ const compactNum=n=>{
+  const v=Math.abs(n||0),sign=n<0?'-':'';
+  if(v>=1e9)return sign+(v/1e9).toFixed(1)+'B';
+  if(v>=1e6)return sign+(v/1e6).toFixed(1)+'M';
+  if(v>=1e3)return sign+(v/1e3).toFixed(1)+'K';
+  return sign+Math.round(v).toLocaleString('en-US');
+ };
+ const money=value=>{const abs=Math.abs(value);const digits=abs>0&&abs<1?Math.min(8,Math.max(2,-Math.floor(Math.log10(abs))+2)):2;return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value);};
+ const remaining=jf=>Math.max(0,Math.ceil((jf.end-Date.now())/1000));
+ const points=jf=>Math.max(0,Math.floor(remaining(jf)/60));
+ const timeText=seconds=>`${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`;
+ // Simulated (non-real) assets only — real-asset prices are never computed
+ // client-side; they're fetched exactly twice, server-side, at round birth and
+ // death, and the outcome is read back from the resolved prediction row.
+ const currentPrice=j=>{
+  const elapsed=Math.max(0,(Date.now()-j.start)/1000);return Math.round((j.asset.start+(j.asset.current-j.asset.start)*Math.cos(elapsed*.105)+j.asset.start*.00022*Math.sin(elapsed*.19))*100)/100;
+ };
+ const sizeForTime=seconds=>(.23+.44*Math.pow(Math.min(1,Math.max(0,seconds)/3600),.8))/1.2;
+ function introExcludeRect(){return {x0:0,y0:0,x1:Math.min(400,vw*.42),y1:Math.min(360,vh*.62)};}
+ function metaExcludeRect(){const mobile=vw<=600;return mobile?{x0:vw-190,y0:174,x1:vw,y1:250}:{x0:vw-260,y0:16,x1:vw,y1:98};}
+ function exclusionRects(){return [introExcludeRect(),metaExcludeRect()];}
+ function findEmptySlot(exclude){
+  const rects=exclusionRects();
+  let best=null,bestScore=-1;
+  for(let i=0;i<24;i++){
+   const fx=.14+Math.random()*.72,fy=.20+Math.random()*.62;
+   const px=fx*vw,py=fy*vh;
+   const inExclude=rects.some(r=>px>r.x0-40&&px<r.x1+40&&py>r.y0-40&&py<r.y1+40);
+   let minD=Infinity;
+   for(const j of jellies){if(j===exclude||j.phaseState==='dying'||j.phaseState==='hidden')continue;const dx=fx-j.slotFx,dy=fy-j.slotFy;minD=Math.min(minD,Math.hypot(dx,dy));}
+   const score=inExclude?-1:minD;
+   if(score>bestScore){bestScore=score;best=[fx,fy];}
+  }
+  return best;
+ }
+ function assignNewAsset(jf,useRow){
+  const exclude=jellies.filter(x=>x!==jf).map(x=>x.asset.symbol);
+  const fresh=makeJellyfish(Math.floor(Math.random()*1e6),jf.slotFx,jf.slotFy);
+  Object.assign(jf,fresh);
+  if(uiVersion!=='v2'){
+   const [fx,fy]=findEmptySlot(jf);
+   jf.slotFx=fx;jf.slotFy=fy;
+   jf.homeX=fx*vw;jf.homeY=fy*vh;
+  }
+  const slotIdx=jellies.indexOf(jf);
+  const row=useRow!==undefined?useRow:(slotIdx>=0?roundState[slotIdx]:null);
+  if(row){
+   jf.asset={symbol:row.symbol,name:row.name,coin:row.coin_glyph,address:(row.address||''),start:parseFloat(row.start_price),current:parseFloat(row.start_price),isReal:true};
+   jf.start=new Date(row.started_at).getTime();jf.end=new Date(row.ends_at).getTime();jf.roundId=row.round_id;
+  }else{
+   jf.asset=freshAssetFor(exclude);jf.start=Date.now();jf.end=Date.now()+ROUND_DURATION*1000;jf.roundId=null;
+  }
+  jf.prediction=null;jf.votes={up:0,down:0};
+  jf.x=jf.homeX;jf.y=jf.homeY;jf.vx=0;jf.vy=0;jf.vx2=0;jf.vy2=0;jf.burst=1;jf.initialized=true;
+ }
+ function settle(jf){
+  if(!jf.prediction)return;
+  // Real assets: nothing to compute here — the server already resolved this
+  // (or will, shortly) using its own once-fetched death price. This is purely
+  // the cosmetic local demo path for simulated assets.
+  if(!jf.asset.isReal){
+   const finalPrice=currentPrice(jf);
+   const delta=finalPrice-jf.asset.start;
+   const right=jf.prediction.direction==='up'?delta>=0:delta<=0;
+   totalCalls++;
+   if(right){bank+=jf.prediction.points;correctCalls++;}
+  }
+  if(hasAccess())analyzeAndSavePlayer();
+ }
+ const FADE_OUT=1.2,FADE_HOLD=.5,FADE_IN=1.2;
+ function updateFade(jf,dt){
+  if(jf.phaseState==='alive'&&remaining(jf)===0&&jf!==selected){
+   settle(jf);jf.phaseState='dying';jf.fadeAlpha=1;
+  }else if(jf.phaseState==='dying'){
+   jf.fadeAlpha=Math.max(0,jf.fadeAlpha-dt/FADE_OUT);
+   if(jf.fadeAlpha<=0){jf.phaseState='hidden';jf.fadeTimer=0;}
+  }else if(jf.phaseState==='hidden'){
+   jf.fadeTimer+=dt;
+   if(jf.fadeTimer>=FADE_HOLD){
+    const slotIdx=jellies.indexOf(jf);
+    const row=slotIdx>=0?roundState[slotIdx]:null;
+    const serverReady=row&&row.round_id!==jf.roundId&&new Date(row.ends_at).getTime()>Date.now();
+    const HARD_FALLBACK=20;
+    if(serverReady||jf.fadeTimer>=HARD_FALLBACK){
+     const prevSymbol=jf.asset.symbol;
+     assignNewAsset(jf,serverReady?row:null);
+     jf.phaseState='spawning';jf.fadeAlpha=0;
+     notify(`${prevSymbol} round ended · ${jf.asset.symbol} appeared`);
+    }
+   }
+  }else if(jf.phaseState==='spawning'){
+   jf.fadeAlpha=Math.min(1,jf.fadeAlpha+dt/FADE_IN);
+   if(jf.fadeAlpha>=1){jf.fadeAlpha=1;jf.phaseState='alive';}
+  }
+ }
+ function shortAddr(a){return a&&a.length>12?`${a.slice(0,6)}…${a.slice(-4)}`:a||'';}
+ let walletBonus=0,lastPlayerRow=null,leaderboardRows=[],myRank=null,myBoardRow=null;
+ const LEADERBOARD_LIMIT=50;
+ const SB_HEAD={apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`};
+ const LEADER_COLS='wallet,twitter,score,tier,total_calls,correct_calls';
+ async function refreshLeaderboard(){
+  try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_players?select=${LEADER_COLS}&order=score.desc&limit=${LEADERBOARD_LIMIT}`,{headers:SB_HEAD});
+   if(!r.ok)return;
+   leaderboardRows=await r.json();
+   await refreshMyRank();
+   updateUI();
+  }catch{}
+ }
+ // Your own standing, even when you sit below the visible top 50: one row lookup
+ // plus a head-only count of everyone scoring above you (no rows transferred).
+ async function refreshMyRank(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const w=gateData?.wallet?gateData.wallet.toLowerCase():null;
+  if(!w){myRank=null;myBoardRow=null;return;}
+  const idx=leaderboardRows.findIndex(r=>r.wallet===w);
+  if(idx>=0){myRank=idx+1;myBoardRow=leaderboardRows[idx];return;}
+  try{
+   const mine=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_players?wallet=eq.${w}&select=${LEADER_COLS}`,{headers:SB_HEAD});
+   const rows=mine.ok?await mine.json():[];
+   if(!rows.length){myRank=null;myBoardRow=null;return;}
+   myBoardRow=rows[0];
+   const above=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_players?select=wallet&score=gt.${myBoardRow.score||0}&limit=1`,{headers:{...SB_HEAD,Prefer:'count=exact'}});
+   const total=parseInt((above.headers.get('content-range')||'').split('/')[1],10);
+   myRank=Number.isFinite(total)?total+1:null;
+  }catch{myRank=null;}
+ }
+ refreshLeaderboard();
+ setInterval(refreshLeaderboard,15000);
+ function updateEvolution(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const walletConnected=!!gateData?.wallet;
+  if(walletConnected&&!lastPlayerRow){
+   $('.mg-progress-body b').innerHTML='Analyzing…';
+   $('.mg-meter>span').style.width='0%';
+   $('.mg-progress-body>small').innerHTML='<strong>…</strong> PTS';
+   return;
+  }
+  const score=walletConnected?(lastPlayerRow.score||0):(bank+walletBonus);
+  const {cur,next}=tierFor(score);
+  $('.mg-progress-body b').innerHTML=`${cur.name} <span>→</span> ${next?next.name:'MAX TIER'}`;
+  const pct=next?Math.min(100,Math.max(0,(score-cur.min)/(next.min-cur.min)*100)):100;
+  $('.mg-meter>span').style.width=`${pct}%`;
+  $('.mg-progress-body>small').innerHTML=`<strong>${score.toLocaleString('en-US')}</strong> / ${next?next.min.toLocaleString('en-US'):score.toLocaleString('en-US')} PTS <span>${next?`${(next.min-score).toLocaleString('en-US')} TO EVOLVE`:'MAX TIER'}</span>`;
+ }
+ // Rows are kept and updated in place, keyed by wallet: updateUI() runs once a
+ // second off the clock tick, and rebuilding the list from scratch re-created every
+ // <img>, so each avatar reloaded and its fallback letter flashed through. Moving an
+ // existing node never restarts its image load.
+ // Wallet blockie: drawn from the address itself, so a row always has a face -
+ // no network call to rate-limit (unavatar 429s on a 50-row board) and no chance
+ // of putting a real person's photo next to numbers they never earned.
+ function blockie(addr){
+  let h=0;for(let i=0;i<addr.length;i++)h=(h*31+addr.charCodeAt(i))>>>0;
+  const rnd=()=>{h^=h<<13;h>>>=0;h^=h>>>17;h^=h<<5;h>>>=0;return h/4294967296;};
+  const hue=Math.floor(72+rnd()*108),hue2=Math.floor(72+rnd()*108);   // lime -> teal band, the board's own family
+  const bg=`hsl(${hue} 18% 10%)`,fg=`hsl(${hue2} 38% 44%)`,ac=`hsl(${hue} 34% 30%)`;
+  let cells='';
+  for(let y=0;y<5;y++)for(let x=0;x<3;x++){
+   const v=rnd();if(v<.5)continue;
+   const c=v>.86?ac:fg;
+   cells+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`;
+   if(x<2)cells+=`<rect x="${4-x}" y="${y}" width="1" height="1" fill="${c}"/>`;
+  }
+  return `<svg viewBox="0 0 5 5" shape-rendering="crispEdges" aria-hidden="true"><rect width="5" height="5" fill="${bg}"/>${cells}</svg>`;
+ }
+ const leaderNodes=new Map();
+ const avatarMissing=new Set();
+ function leaderNode(key){
+  let li=leaderNodes.get(key);
+  if(!li){
+   li=document.createElement('li');
+   li.innerHTML='<span class="mg-leader-rank"></span><span class="mgx-av"></span><span class="mg-leader-id"><b></b><span class="mg-leader-stats"></span><span class="mg-leader-link"></span></span><span class="mg-leader-points"></span>';
+   leaderNodes.set(key,li);
+  }
+  return li;
+ }
+ function fillLeaderRow(li,row,rank,isYou,pinned){
+  const rankClass=pinned?'':rank===1?' rank-1':rank===2?' rank-2':rank===3?' rank-3':'';
+  const cls='mg-leader-row'+(isYou?' is-you':'')+(pinned?' is-pinned':'')+rankClass;
+  if(li.className!==cls)li.className=cls;
+  const tw=(row.twitter||'').replace(/^@/,'');
+  const calls=row.total_calls||0;
+  const wr=calls?Math.round((row.correct_calls||0)/calls*100)+'%':'—';
+  const av=li.querySelector('.mgx-av');
+  // X avatar through unavatar (no key); ?fallback=false 404s when there is none.
+  // Built once per handle - rebuilding it every tick made it reload and flash.
+  // no X avatar -> the player's creature by game tier (BACTERIA ... MEGALODON); the
+  // blockie stays only for a row with no tier at all
+  const tierKey=String(row.tier||'').toLowerCase();
+  if(av.dataset.key!==(tw||row.wallet)+'|'+tierKey){
+   av.dataset.key=(tw||row.wallet)+'|'+tierKey;
+   const fallback=()=>{
+    if(tierKey){av.innerHTML=`<img class="is-creature" alt="${tierKey}" loading="lazy" src="/creatures/${tierKey}.png">`;const c=av.firstChild;c.onerror=()=>{av.innerHTML=blockie(row.wallet||'0x0');};}
+    else av.innerHTML=blockie(row.wallet||'0x0');
+   };
+   if(tw&&!avatarMissing.has(tw)){
+    av.textContent='';
+    const img=document.createElement('img');
+    img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';
+    img.onerror=()=>{avatarMissing.add(tw);fallback();};
+    img.src=`https://unavatar.io/x/${encodeURIComponent(tw)}?fallback=false`;
+    av.append(img);
+   }else fallback();
+  }
+  const set=(sel,txt)=>{const el=li.querySelector(sel);if(el.textContent!==txt)el.textContent=txt;};
+  set('.mg-leader-rank',pinned?'#'+rank:String(rank));
+  set('.mg-leader-id b',shortAddr(row.wallet));
+  set('.mg-leader-stats',`WR ${wr} · ${calls} calls`);
+  set('.mg-leader-points',compactNum(row.score||0));
+  const link=li.querySelector('.mg-leader-link');
+  // no handle, no placeholder: an empty "X -" on every row is just noise
+  const linkHTML=tw?`<a href="https://x.com/${tw}" target="_blank" rel="noopener">𝕏 @${tw}</a>`:'';
+  if(link.dataset.html!==linkHTML){link.dataset.html=linkHTML;link.innerHTML=linkHTML;}
+ }
+ let leaderOrderKey='';
+ function renderLeaderboard(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const connected=!!gateData?.wallet;
+  const myWallet=connected?gateData.wallet.toLowerCase():null;
+  const list=$('.mg-leaderboard-list');
+  const entries=leaderboardRows.map((row,i)=>({key:row.wallet,row,rank:i+1,pinned:false}));
+  // below the top 50: your own row rides pinned at the foot of the list
+  const inList=myWallet&&entries.some(e=>e.row.wallet===myWallet);
+  if(myWallet&&!inList&&myBoardRow&&myRank)entries.push({key:'you',row:myBoardRow,rank:myRank,pinned:true});
+  entries.forEach(e=>fillLeaderRow(leaderNode(e.key),e.row,e.rank,myWallet&&e.row.wallet===myWallet,e.pinned));
+  const orderKey=entries.map(e=>e.key).join('|');
+  if(orderKey!==leaderOrderKey){
+   leaderOrderKey=orderKey;
+   const keys=new Set(entries.map(e=>e.key));
+   for(const [key,li] of leaderNodes){if(!keys.has(key)){li.remove();leaderNodes.delete(key);}}
+   const frag=document.createDocumentFragment();
+   entries.forEach(e=>frag.append(leaderNodes.get(e.key)));
+   list.append(frag);
+  }
+  $('[data-you-rank]').textContent=connected&&myRank?`#${myRank}`:'—';
+  $('[data-you-points]').textContent=connected?(lastPlayerRow?(lastPlayerRow.score||0).toLocaleString('en-US'):'…'):bank.toLocaleString('en-US');
+  $('[data-leaderboard-cta]').hidden=connected;
+ }
+ let referralInviteCount=0;
+ function updateReferral(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const input=$('[data-referral-input]'),btn=$('.mg-referral-copy-btn'),shareBtn=$('[data-referral-share]');
+  const code=lastPlayerRow?.referral_code;
+  if(gateData?.wallet&&code){
+   input.value=`${location.origin}${location.pathname}?ref=${code}`;btn.disabled=false;shareBtn.disabled=false;
+  }else{
+   input.value=gateData?.wallet?'Analyzing…':'Connect wallet';btn.disabled=true;shareBtn.disabled=true;
+  }
+  loadMyCard();
+  $('[data-referral-invites]').textContent=referralInviteCount;
+  $('[data-referral-points]').textContent=(lastPlayerRow?.referral_points||0).toLocaleString('en-US');
+ }
+ async function refreshReferralStats(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const wallet=gateData?.wallet;
+  if(!wallet||!WALLET_RE.test(wallet))return;
+  try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_referrals?referrer=eq.${wallet}&select=referred`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
+   if(r.ok){referralInviteCount=(await r.json()).length;updateReferral();}
+  }catch{}
+ }
+ setInterval(()=>{if(hasAccess())refreshReferralStats();},3600000);
+ for(const jf of jellies){
+  const hit=document.createElement('button');hit.type='button';hit.className='mg-hit cursor-interaction';hit.setAttribute('aria-label',`Open ${jf.asset.name} prediction`);
+  const label=document.createElement('button');label.type='button';label.className='mg-jelly-label cursor-interaction';label.title=jf.asset.name;label.innerHTML=`<span class="mg-label-head"><b>${jf.asset.symbol}</b><span data-label-state>UP OR DOWN?</span></span><span class="mg-label-line"><span data-label-time></span><b data-label-points></b></span><span class="mgx-label-start"><span>START</span><b data-label-start></b></span>`;
+  const pal=palette(jf);
+  label.style.setProperty('--jelly-border',`rgba(${pal.tint},.67)`);
+  label.style.setProperty('--jelly-shadow',`rgba(${pal.tint},.16)`);
+  hit.addEventListener('click',e=>{e.stopPropagation();cancelWalk();openJelly(jf);});label.addEventListener('click',e=>{e.stopPropagation();cancelWalk();openJelly(jf);});
+  hit.addEventListener('mouseenter',()=>{jf.hovering=true;});hit.addEventListener('mouseleave',()=>{jf.hovering=false;});
+  label.addEventListener('mouseenter',()=>{jf.hovering=true;});label.addEventListener('mouseleave',()=>{jf.hovering=false;});
+  labelLayer.append(hit,label);jf.hit=hit;jf.label=label;
+ }
+ function v2Grid(n){
+  const cols=Math.max(2,Math.min(4,Math.round(Math.sqrt(n*(vw/vh)))));
+  const rows=Math.ceil(n/cols);
+  return {cols,rows};
+ }
+ // Keep-out zones are measured, not assumed: the copy at the top-left (headline + agent
+ // pill), the header strip and the HUD at the bottom all sit inside the ocean, and their
+ // size changes with the monitor, the zoom level and the text. The grid is laid out in the
+ // band between header and HUD, and any row the copy reaches into starts to its right.
+ let keep={hero:null,topInset:0,bottomInset:0};
+ function measureKeepOut(){
+  const or=ocean.getBoundingClientRect();
+  const rect=sel=>{const el=root.querySelector(sel);if(!el)return null;const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden')return null;const r=el.getBoundingClientRect();if(!r.width||!r.height)return null;return {left:r.left-or.left,top:r.top-or.top,right:r.right-or.left,bottom:r.bottom-or.top};};
+  const hero=rect('.mgx-hero'),top=rect('.mgx-top'),bottom=rect('.mgx-bottom');
+  keep={hero,topInset:top?Math.max(0,Math.min(top.bottom,vh*.2)):0,bottomInset:bottom?Math.max(0,Math.min(vh-bottom.top,vh*.25)):0};
+ }
+ function layout(){
+  const oldWidth=vw,oldHeight=vh;vw=ocean.clientWidth||1024;vh=ocean.clientHeight||586;
+  applyDpr();
+  const mobile=vw<=600;
+  const {cols,rows}=v2Grid(jellies.length);
+  measureKeepOut();
+  const bandTop=keep.topInset,bandH=Math.max(vh*.4,vh-keep.bottomInset-bandTop),rowH=bandH/rows;
+  jellies.forEach((j,i)=>{
+   if(uiVersion==='v2'){
+    const col=i%cols,row=Math.floor(i/cols);
+    const itemsInRow=Math.min(cols,jellies.length-row*cols);
+    const rowOffset=(cols-itemsInRow)/2;
+    const rowTop=bandTop+row*rowH;
+    // a row the copy reaches into starts right of the copy's actual edge
+    let gutter=0;
+    if(keep.hero&&vw>900&&keep.hero.bottom>rowTop+rowH*.12)gutter=Math.min(.5,(keep.hero.right+36)/vw);
+    j.homeX=(gutter+(1-gutter)*((col+rowOffset+.5)/cols))*vw;
+    j.homeY=rowTop+rowH*.5;
+    j.cellW=(1-gutter)*vw/cols;j.cellH=rowH;
+   }else{
+    j.homeX=j.slotFx*vw;j.homeY=j.slotFy*vh;
+   }
+   if(!j.initialized){j.x=j.homeX;j.y=j.homeY;j.initialized=true;}
+   else if((oldWidth<=600)!==mobile){j.x=j.homeX;j.y=j.homeY;j.vx=0;j.vy=0;}
+   else if(chosenView==='ocean'){j.x*=vw/oldWidth;j.y*=vh/oldHeight;}
+  });
+  draw();
+ }
+ function updatePhysics(dt){
+  updateSolo(dt);
+  for(const j of jellies){
+   updateFade(j,dt);
+   const seconds=remaining(j),mobile=vw<=600;
+   const fit=mobile?.82:1;
+   const breath=1+.025*Math.sin((t+j.timeOffset)*.7);
+   j.depth=Math.sin((t+j.timeOffset)*j.depthFreq+j.depthPhase);
+   if(uiVersion==='v2'){
+    const pulse=Math.sin(t*SOLO_PULSE_FREQ+j.timeOffset*.3);
+    j.squashNow=.75+pulse*.05;
+    // a jellyfish shrinks as its round runs out, but never to a speck
+    const timeFactor=Math.max(.62,sizeForTime(seconds)/sizeForTime(ROUND_DURATION));
+    const cellBaseScale=Math.min(j.cellW,j.cellH)*.30/164;
+    j.renderScaleNow=Math.max(.16,Math.min(1.15,cellBaseScale*timeFactor*breath*j.sizeMult*(1+pulse*.07)));
+    j.collisionRadiusNow=164*j.renderScaleNow*1.05;
+    const wx=Math.sin(t*j.wf[0]+j.wp[0])+.6*Math.sin(t*j.wf[1]+j.wp[1]);
+    const wy=Math.sin(t*j.wf[2]+j.wp[2])+.6*Math.sin(t*j.wf[3]+j.wp[3]);
+    j.vx2=(j.vx2||0)+(wx*7*j.driftSpeed+(j.homeX-j.x)*.2)*dt;
+    j.vy2=(j.vy2||0)+(wy*5*j.driftSpeed+(j.homeY-j.y)*.2)*dt;
+    const damping2=Math.exp(-1.3*dt);j.vx2*=damping2;j.vy2*=damping2;
+    j.x+=j.vx2*dt;j.y+=j.vy2*dt;
+    const marginRaw=164*j.renderScaleNow*1.9;
+    const marginX=Math.min(marginRaw,vw*.44),marginY=Math.min(marginRaw,vh*.44);
+    const radius=164*j.renderScaleNow;
+    const bottomLimit=Math.max(vh*.55,vh-Math.max(marginY,keep.bottomInset+radius*1.4));
+    j.x=Math.max(marginX,Math.min(vw-marginX,j.x));
+    j.y=Math.max(marginY,Math.min(bottomLimit,j.y));
+    if(keep.hero&&vw>900&&j.homeY<keep.hero.bottom+radius)j.x=Math.max(Math.min(keep.hero.right+36+radius*.6,vw*.5),j.x);
+    j.vx=Math.cos(SOLO_TILT)*42;j.vy=Math.sin(SOLO_TILT)*42;
+    j.burst=Math.max(j.burst,Math.max(0,pulse)*.3);
+    j.burst=Math.max(0,j.burst-dt*.7);
+    j.hoverGlow=(j.hoverGlow||0)+((j.hovering?1:0)-(j.hoverGlow||0))*(1-Math.exp(-dt*4));
+    continue;
+   }
+   j.squashNow=.75+j.depth*.10;
+   j.renderScaleNow=sizeForTime(seconds)*fit*breath*j.sizeMult;
+   j.collisionRadiusNow=164*j.renderScaleNow*1.05;
+   if(!selected&&!returning&&!reduceMotion){
+    const wx=Math.sin(t*j.wf[0]+j.wp[0])+.6*Math.sin(t*j.wf[1]+j.wp[1]);
+    const wy=Math.sin(t*j.wf[2]+j.wp[2])+.6*Math.sin(t*j.wf[3]+j.wp[3]);
+    j.vx+=(wx*14+(j.homeX-j.x)*.18)*dt*options.speed;
+    j.vy+=(wy*9+(j.homeY-j.y)*.18)*dt*options.speed;
+    let cx=0,cy=0,cvx=0,cvy=0,cn=0;
+    for(const other of jellies){if(other===j||other.phaseState!=='alive')continue;cx+=other.x;cy+=other.y;cvx+=other.vx;cvy+=other.vy;cn++;}
+    if(cn){
+     j.vx+=((cx/cn)-j.x)*.010*dt*options.speed;
+     j.vy+=((cy/cn)-j.y)*.010*dt*options.speed;
+     j.vx+=((cvx/cn)-j.vx)*.06*dt;
+     j.vy+=((cvy/cn)-j.vy)*.06*dt;
+    }
+    const damping=Math.exp(-1.8*dt);j.vx*=damping;j.vy*=damping;
+    j.x+=j.vx*dt*options.speed;j.y+=j.vy*dt*options.speed;
+    const margin=Math.max(45,j.collisionRadiusNow);
+    j.x=Math.max(margin,Math.min(vw-margin,j.x));
+    const floor=vh-j.renderScaleNow*340-20;
+    j.y=Math.max(mobile?240:90,Math.min(floor,j.y));
+    const pad=j.collisionRadiusNow;
+    for(const ex of exclusionRects()){
+     const ex0=ex.x0-pad,ey0=ex.y0-pad,ex1=ex.x1+pad,ey1=ex.y1+pad;
+     if(j.x>ex0&&j.x<ex1&&j.y>ey0&&j.y<ey1){
+      const distLeft=j.x-ex0,distRight=ex1-j.x,distTop=j.y-ey0,distBottom=ey1-j.y;
+      const minDist=Math.min(distLeft,distRight,distTop,distBottom);
+      const push=160;
+      if(minDist===distLeft)j.vx-=push*dt;
+      else if(minDist===distRight)j.vx+=push*dt;
+      else if(minDist===distTop)j.vy-=push*dt;
+      else j.vy+=push*dt;
+     }
+    }
+   }
+   j.burst=Math.max(0,j.burst-dt*.7);
+   j.hoverGlow=(j.hoverGlow||0)+((j.hovering?1:0)-(j.hoverGlow||0))*(1-Math.exp(-dt*4));
+  }
+  if(uiVersion==='v2'){
+   updateMarketStream(dt);
+  }else if(!selected&&!returning){
+   for(let i=0;i<jellies.length;i++)for(let k=i+1;k<jellies.length;k++){
+    const a=jellies[i],b=jellies[k],dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||1;
+    const minDist=(a.collisionRadiusNow+b.collisionRadiusNow)*.6;
+    if(dist<minDist){a.burst=Math.max(a.burst,.4);b.burst=Math.max(b.burst,.4);}
+   }
+  }
+ }
+ function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,vw,vh);
+  if(viewMode==='solo'){
+   for(const p of stars)dot(p.u*vw,(p.v*vh-t*1.6+vh*100)%vh,p.s,.06+.12*(1+Math.sin(t*.6+p.phase))/2,'145,177,171');
+   drawSoloStream();
+   drawJellyfish(soloJelly,1,SOLO_TILT,soloRipples);
+   return;
+  }
+  const mobile=vw<=600;
+  const focusJelly=selected||returning;
+  const amount=focusAmount;
+  const targetX=mobile?vw*.5:Math.min(vw*.30,(vw-390)*.49);
+  const targetY=mobile?90:Math.min(208,vh*.32);
+  const targetScale=(mobile?.55:Math.min(.90,(vw-380)/510,(vh-60)/520))*options.zoom;
+  const zoom=focusJelly?1+(Math.max(1.35,targetScale/Math.max(.01,focusJelly.renderScaleNow))-1)*amount:1;
+  const anchorX=focusJelly?focusJelly.x+(targetX-focusJelly.x)*amount:0;
+  const anchorY=focusJelly?focusJelly.y+(targetY-focusJelly.y)*amount:0;
+  const project=(x,y,depth=1)=>focusJelly?{
+   x:x+(anchorX+(x-focusJelly.x)*zoom-x)*depth,
+   y:y+(anchorY+(y-focusJelly.y)*zoom-y)*depth
+  }:{x,y};
+  for(const p of stars){
+   const point=project(p.u*vw,(p.v*vh-t*1.6+vh*100)%vh,.28);
+   dot(point.x,point.y,p.s*(1+(zoom-1)*.25),(.06+.12*(1+Math.sin(t*.6+p.phase))/2)*(1-amount*.35),'145,177,171');
+  }
+  const drawOrder=focusJelly?[...jellies.filter(j=>j!==focusJelly),focusJelly]:jellies;
+  if(uiVersion==='v2')drawMarketStream();
+  for(const jf of drawOrder){
+   const original={x:jf.x,y:jf.y,scale:jf.renderScaleNow};
+   const background=focusJelly&&jf!==focusJelly;
+   const projected=project(original.x,original.y,background?1+amount*.22:1);
+   jf.x=projected.x;jf.y=projected.y;
+   jf.renderScaleNow=original.scale*zoom*(background?1-amount*.48:1);
+   const alpha=(background?1-amount*.85:1)*jf.fadeAlpha;
+   if(uiVersion==='v2'){
+    const jfRipples=marketRipples.filter(r=>r.jf===jf);
+    drawJellyfish(jf,alpha,SOLO_TILT,jfRipples);
+   }else{
+    drawJellyfish(jf,alpha);
+   }
+   jf.renderX=jf.x;jf.renderY=jf.y;jf.renderScale=jf.renderScaleNow;
+   jf.x=original.x;jf.y=original.y;jf.renderScaleNow=original.scale;
+   const interactive=jf.phaseState==='alive';
+   jf.hit.style.pointerEvents=interactive?'auto':'none';
+   jf.label.style.pointerEvents=interactive?'auto':'none';
+   const r=140*original.scale,rHit=170*original.scale;
+   jf.hit.style.transform=`translate(${original.x-rHit}px,${original.y-rHit}px)`;jf.hit.style.width=`${rHit*2}px`;jf.hit.style.height=`${rHit*2}px`;
+   const labelW=mobile?128:142,labelH=58;
+   jf.label.style.width=`${labelW}px`;
+   const sizeRatio=Math.max(.5,Math.min(1,original.scale/.6));
+   let lx=original.x-labelW/2,ly=original.y+r*.9-labelH/2;
+   lx=Math.max(14,Math.min(vw-labelW-16,lx));ly=Math.max(mobile?216:72,Math.min(vh-labelH-25,ly));
+   const labelPosition=project(lx,ly,background?1+amount*.22:1);
+   jf.label.style.transformOrigin='center';
+   jf.label.style.transform=`translate(${labelPosition.x}px,${labelPosition.y}px) scale(${(1+(zoom-1)*.45)*sizeRatio})`;
+   jf.label.style.opacity=String((1-amount)*jf.fadeAlpha);
+  }
+ }
+ function openJelly(jf){
+  if(selected===jf)return;
+  closeSidePanels();
+  selected=jf;returning=null;chosenView='focus';focusAmount=reduceMotion?1:0;focusOrigin=document.activeElement;
+  root.dataset.view='focus';dialog.hidden=false;labelLayer.inert=true;
+  updateUI();$('.mg-close').focus({preventScroll:true});
+  resetIdleHint();
+  refreshVoteStats();
+ }
+ function closeJelly(){
+  returning=selected;selected=null;chosenView='ocean';if(reduceMotion)focusAmount=0;root.dataset.view='ocean';dialog.hidden=true;labelLayer.inert=false;
+  if(focusOrigin?.isConnected)focusOrigin.focus({preventScroll:true});
+  resetIdleHint();
+  updateUI();
+ }
+ function choose(direction){
+  if(!hasAccess()){openGate();return;}
+  const jf=selected;if(!jf||jf.prediction)return;
+  const reward=points(jf);if(reward<=0){updateUI();return;}
+  jf.prediction={direction,points:reward};jf.burst=1;
+  updateUI();$('.mg-return').focus({preventScroll:true});
+  notify(`${jf.asset.symbol} ${direction.toUpperCase()} · ${reward} points locked`);
+  savePrediction(jf);
+ }
+ // Live chart in the card: DexScreener's embed of the token's deepest pair on the
+ // chain. The pair is looked up once per token and remembered; the iframe only
+ // reloads when a different jellyfish is opened.
+ const chartPairs={};let chartShown=null;
+ async function showChart(asset){
+  const box=$('.mg-chart'),frame=$('[data-chart]');if(!box||!frame)return;
+  const addr=asset?.isReal?asset.address:'';
+  if(addr===chartShown)return;
+  chartShown=addr;
+  if(!addr){box.hidden=true;frame.removeAttribute('src');return;}
+  try{
+   if(!(addr in chartPairs)){
+    const r=await fetch('https://api.dexscreener.com/tokens/v1/solana/'+addr);
+    const pairs=r.ok?await r.json():[];
+    chartPairs[addr]=(Array.isArray(pairs)?pairs:[]).sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0]?.pairAddress||null;
+   }
+  }catch{chartPairs[addr]=null;}
+  if(chartShown!==addr)return;               // another jellyfish was opened meanwhile
+  const pair=chartPairs[addr];
+  if(!pair){box.hidden=true;frame.removeAttribute('src');return;}
+  frame.src='https://dexscreener.com/solana/'+pair+'?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=5';
+  box.hidden=false;
+ }
+ $('.mgx-chart-toggle').addEventListener('click',()=>{const d=$('.mg-dialog'),open=d.classList.toggle('chart-open');const b=$('.mgx-chart-toggle');b.textContent=open?'Hide chart':'Show chart';b.setAttribute('aria-expanded',open);});
+ // the pills sit left of the wallet, whose width changes with its contents
+ {const w=$('.mg-v2-wallet'),g=document.getElementById('medusa-game');
+  const fit=()=>g.style.setProperty('--mgx-wallet',(w.offsetWidth+12)+'px');
+  const later=()=>setTimeout(fit,0);            // never measure while the script is still setting up
+  addEventListener('load',later);addEventListener('resize',later);later();
+  new MutationObserver(later).observe(w,{subtree:true,childList:true,attributes:true});}
+ async function savePrediction(jf){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  if(!gateData?.wallet)return;
+  const p=jf.prediction;
+  try{
+   const r=await fetch('/api/predictions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet:gateData.wallet,symbol:jf.asset.symbol,direction:p.direction,points:p.points,startPrice:jf.asset.start,roundId:jf.roundId})});
+   const data=await r.json();
+   if(r.ok&&data?.id&&jf.prediction===p)p.dbId=data.id;
+  }catch{}
+  refreshMyPredictions();
+  refreshVoteStats();
+ }
+ function notify(text){const toast=$('.mg-toast');if(toast.classList.contains('is-sticky'))return;toast.textContent=text;toast.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2800);}
+ function updateUI(){
+  let locked=0,count=0;
+  for(const j of jellies){
+   const sec=remaining(j),mins=points(j),p=j.prediction;
+   j.label.title=j.asset.name;
+   j.label.querySelector('.mg-label-head b').textContent=j.asset.symbol;
+   j.label.querySelector('[data-label-time]').textContent=`${mins}m ${String(sec%60).padStart(2,'0')}s left`;
+   j.label.querySelector('[data-label-start]').textContent=money(j.asset.start);
+   j.label.querySelector('[data-label-points]').textContent=p?`${p.points} pts locked`:`${mins} pts`;
+   j.label.querySelector('[data-label-state]').textContent=p?`${p.direction==='up'?'↗':'↘'} CLAIMED`:sec<60?'CLOSING':'UP OR DOWN?';
+   j.label.classList.toggle('is-claimed',!!p);
+   j.label.setAttribute('aria-label',`${j.asset.name}, ${mins} minutes left, ${p?`${p.points} points locked, ${p.direction}, view prediction`:`${mins} available points, open prediction`}`);
+   if(p){locked+=p.points;count++;}
+  }
+  $('[data-pending]').innerHTML=`${locked} <small>PTS</small>`;
+  $('[data-pending]').parentElement.classList.toggle('has-pending',count>0);
+  $('[data-pending-caption]').textContent=count?`${count} prediction${count===1?'':'s'} awaiting result`:'No open predictions';
+  $('.mg-mypreds-stats').hidden=count===0;
+  const nextSpawnIn=Math.max(0,Math.min(...jellies.map(remaining)));
+  $('[data-spawn-timer]').textContent=timeText(nextSpawnIn);
+  const aliveJ=jellies.filter(j=>j.phaseState==='alive');
+  const allPredicted=aliveJ.length>0&&aliveJ.every(j=>j.prediction);
+  $('.mg-v2-idle-hint').textContent=allPredicted?`New jellyfish in ${timeText(nextSpawnIn)}`:'Pick a jellyfish to make a prediction.';
+  updateEvolution();renderLeaderboard();updateReferral();updateV2Bar();
+  if(!selected)return;
+  const j=selected,p=j.prediction,sec=remaining(j),mins=points(j);
+  $('[data-asset]').textContent=j.asset.name;$('[data-symbol]').textContent=`${j.asset.symbol} / USD`;$('[data-coin]').textContent=j.asset.coin;
+  $('[data-question-asset]').textContent=j.asset.name;
+  $('[data-start-price]').textContent=money(j.asset.start);
+  $('[data-specimen]').textContent=j.asset.symbol;$('[data-next-mins]').textContent=mins;
+  showChart(j.asset);
+  $('[data-reward]').textContent=mins;$('[data-countdown]').textContent=timeText(sec);$('[data-result-time]').textContent=timeText(sec);
+  $('.mg-time-track>span').style.width=`${Math.min(100,sec/3600*100)}%`;
+  const voteTotal=(j.votes?.up||0)+(j.votes?.down||0);
+  $('[data-votes]').hidden=voteTotal===0;
+  if(voteTotal>0){
+   const upPct=Math.round(j.votes.up/voteTotal*100);
+   $('[data-votes-count]').textContent=voteTotal;
+   $('[data-votes-up-bar]').style.width=`${upPct}%`;
+   $('[data-votes-up]').textContent=`↗ ${upPct}%`;
+   $('[data-votes-down]').textContent=`↘ ${100-upPct}%`;
+  }
+  $('.mg-decision').hidden=!!p;$('.mg-confirmed').hidden=!p;
+  $('.mg-round-state').textContent=p?'CLAIMED':sec<60?'CLOSING':'ROUND OPEN';
+  $$('.mg-choices button').forEach(b=>b.disabled=!!p||sec<60);
+  if(p){$('[data-locked-direction]').textContent=`${p.direction==='up'?'↗':'↘'} ${p.direction.toUpperCase()}`;$('[data-locked-points]').textContent=p.points;
+   const ended=sec<=0;
+   $('.mg-live-position').hidden=!ended;$('.mg-settle').hidden=ended;
+   if(ended){
+    $('[data-confirmed-start]').textContent=money(j.asset.start);
+    if(p.status&&p.status!=='pending'){
+     $('[data-confirmed-now]').textContent=money(p.finalPrice);
+     const right=p.status==='won';
+     $('[data-confirmed-status]').textContent=right?'Call was right':'Call was wrong';
+     $('[data-confirmed-status]').dataset.position=right?'right':'wrong';
+    }else{
+     $('[data-confirmed-now]').textContent='…';
+     $('[data-confirmed-status]').textContent='Market resolving…';
+     $('[data-confirmed-status]').dataset.position='pending';
+    }
+   }
+  }
+ }
+ function cancelWalk(){walkTimers.forEach(clearTimeout);walkTimers=[];walkActive=false;}
+ $('.mg-close').addEventListener('click',()=>{cancelWalk();closeJelly();});
+ $('.mg-return').addEventListener('click',()=>{cancelWalk();closeJelly();});
+ $$('.mg-choices button').forEach(b=>b.addEventListener('click',()=>{cancelWalk();choose(b.dataset.direction);}));
+ const gate=$('.mg-gate'),gateForm=$('.mg-gate-form'),gateSubmit=$('.mg-gate-submit'),gateSkip=$('.mg-gate-skip'),gateClose=$('.mg-gate-close');
+ const creditPopup=$('.mg-credit-popup');
+ function showGradeCreditPopup(grade){
+  $('[data-credit-label]').textContent=grade.label;
+  $('[data-credit-points]').textContent=`+${grade.points.toLocaleString('en-US')}`;
+  creditPopup.classList.remove('is-hidden');
+ }
+ function closeGradeCreditPopup(){creditPopup.classList.add('is-hidden');}
+ $('.mg-credit-close').addEventListener('click',closeGradeCreditPopup);
+ $('.mg-credit-ok').addEventListener('click',closeGradeCreditPopup);
+ creditPopup.addEventListener('click',e=>{if(e.target===creditPopup)closeGradeCreditPopup();});
+ const gateKey='medusa-gate-access-v1',gateSkipKey='medusa-gate-skip-v1';
+ function hasAccess(){try{return !!localStorage.getItem(gateKey);}catch{return false;}}
+ function hasSkipped(){try{return sessionStorage.getItem(gateSkipKey)==='1';}catch{return false;}}
+ function updateGateSubmit(){gateSubmit.disabled=!gateForm.wallet.value.trim();}
+ function openGate(){gate.classList.remove('is-hidden');setTimeout(()=>gateForm.wallet.focus({preventScroll:true}),50);}
+ function closeGate(){gate.classList.add('is-hidden');}
+ const WALLET_RE=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+ // a pasted GMGN profile link carries the address in its path - take it from anywhere in the string
+ function walletFromInput(v){const x=String(v||'').match(/[1-9A-HJ-NP-Za-km-z]{32,44}/);return x?x[0]:null;}
+ async function loadPlayerProfile(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const wallet=gateData?.wallet;
+  if(!wallet||!WALLET_RE.test(wallet))return;
+  try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_players?wallet=eq.${wallet}&select=*`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
+   if(r.ok){
+    const rows=await r.json();
+    const row=rows[0];
+    if(row){
+     lastPlayerRow=row;walletBonus=Math.max(0,(row.score||0)-(row.lifetime_points||0));
+     updateUI();updateReferral();
+    }
+   }
+  }catch{}
+  analyzeAndSavePlayer();
+  refreshMyPredictions();
+  refreshReferralStats();
+ }
+ function setAnalyzing(on){
+  $('[data-v2-profile]').classList.toggle('is-analyzing',on);
+  if(on)$('[data-v2-tier]').textContent='…';
+ }
+ async function refreshMyPredictions(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const wallet=gateData?.wallet;
+  if(!wallet||!WALLET_RE.test(wallet))return;
+  let rows=[];
+  try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_predictions?wallet=eq.${wallet}&select=*&order=created_at.desc&limit=50`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
+   if(r.ok)rows=await r.json();
+  }catch{}
+  // Sync every live jellyfish's local prediction state from server truth: this
+  // restores "already called this round" after a reload (fixes the locked-
+  // potential stat and re-disables UP/DOWN so a reload can't bet both
+  // directions on one round — the DB also hard-blocks that, this just keeps
+  // the UI honest), AND picks up the resolved result once the server settles
+  // it, since there's no client-side price polling to compute that locally.
+  const byRound=new Map(rows.filter(p=>p.round_id).map(p=>[p.round_id,p]));
+  for(const jf of jellies){
+   if(!jf.roundId)continue;
+   const match=byRound.get(jf.roundId);
+   if(!match)continue;
+   if(!jf.prediction)jf.prediction={direction:match.direction,points:match.points,dbId:match.id};
+   jf.prediction.dbId=match.id;
+   jf.prediction.status=match.status;
+   jf.prediction.finalPrice=match.final_price!=null?parseFloat(match.final_price):null;
+  }
+  updateUI();
+  const resolved=rows.filter(p=>p.status!=='pending');
+  const won=resolved.filter(p=>p.status==='won').length;
+  const winRate=resolved.length?Math.round(won/resolved.length*100)+'%':'—';
+  $('[data-v2-pred-winrate]').textContent=winRate;
+  $('[data-v2-pred-count]').textContent=resolved.length;
+  const list=$('.mg-mypreds-list');list.innerHTML='';
+  $('[data-mypreds-empty]').hidden=rows.length>0;
+  const liveEndsByRound=new Map(jellies.filter(j=>j.roundId).map(j=>[j.roundId,j.end]));
+  for(const p of rows){
+   const li=document.createElement('li');li.className='mg-pred-row';
+   const dirLabel=p.direction==='up'?'↗ UP':'↘ DOWN';
+   let pointsHtml;
+   if(p.status==='pending'){
+    const stillLive=liveEndsByRound.has(p.round_id)&&liveEndsByRound.get(p.round_id)>Date.now();
+    pointsHtml=stillLive?'<span class="mg-pred-points is-pending">PENDING</span>':'<span class="mg-pred-points is-pending">MARKET RESOLVING…</span>';
+   }
+   else if(p.status==='won')pointsHtml=`<span class="mg-pred-points is-won">+${p.points_awarded}</span>`;
+   else pointsHtml='<span class="mg-pred-points is-lost">0</span>';
+   li.innerHTML=`<div class="mg-pred-main"><span class="mg-pred-symbol">${p.symbol}</span><span class="mg-pred-dir">${dirLabel}</span></div>${pointsHtml}`;
+   list.appendChild(li);
+  }
+ }
+ setInterval(()=>{if(hasAccess())refreshMyPredictions();},12000);
+ async function refreshVoteStats(){
+  const roundIds=[...new Set(jellies.map(j=>j.roundId).filter(Boolean))];
+  if(!roundIds.length)return;
+  try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/sol_medusa_predictions?round_id=in.(${roundIds.join(',')})&select=round_id,direction`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
+   if(!r.ok)return;
+   const rows=await r.json();
+   const counts={};
+   for(const row of rows){const c=counts[row.round_id]||(counts[row.round_id]={up:0,down:0});c[row.direction]++;}
+   jellies.forEach(jf=>{jf.votes=jf.roundId?(counts[jf.roundId]||{up:0,down:0}):{up:0,down:0};});
+   updateUI();
+  }catch{}
+ }
+ refreshVoteStats();
+ setInterval(refreshVoteStats,15000);
+ let pendingRefCode=null;
+ try{pendingRefCode=new URLSearchParams(location.search).get('ref');}catch{}
+ async function analyzeAndSavePlayer(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const wallet=gateData?.wallet;
+  if(!wallet||!WALLET_RE.test(wallet))return;
+  setAnalyzing(true);
+  try{
+   const r=await fetch('/api/player',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet,twitter:gateData.twitter,refCode:pendingRefCode})});
+   const data=await r.json();
+   if(r.ok){
+    lastPlayerRow=data;walletBonus=Math.max(0,(data.score||0)-(data.lifetime_points||0));
+    const bonus=data.walletGradeIsNew&&data.walletGrade?.points>0?data.walletGrade:null;
+    if(revealPending)finishReveal(wallet,bonus);else if(bonus)showGradeCreditPopup(bonus);
+    if(data.twitterRejected)notify('That X handle is already linked to another wallet — not saved.');
+    if(data.twitterMissing)notify('No such profile on X — handle not saved.');
+    updateReferral();refreshReferralStats();
+   }
+   else{closeReveal();notify(`Wallet analysis failed: ${data?.error||'unknown error'}`);}
+  }catch{closeReveal();notify('Wallet analysis failed — check your connection');}
+  setAnalyzing(false);
+  updateEvolution();updateV2Bar();
+ }
+ function shareStatus(){
+  const score=lastPlayerRow?.score??(bank+walletBonus),tier=lastPlayerRow?.tier||tierFor(score).cur.name;
+  const text=`Words lie. On-chain doesn't. MEDUSA scans sentiment vs real on-chain buys — catches insiders moving before Twitter even notices. I'm a ${tier} (${score.toLocaleString('en-US')} pts). Join the beta for the wildest prediction market in crypto:`;
+  const code=lastPlayerRow?.referral_code;
+  let shareText=text,shareUrl=`${location.origin}${location.pathname}${code?`?ref=${code}`:''}`;
+  // once the wallet card is known, share THAT: its page unfurls a personal
+  // 1200x630 card on X and its Play button carries this wallet's ref code.
+  if(myCard){shareText=`My wallet is a ${myCard.tier} on MEDUSA${myCard.character?` · ${myCard.character}`:''}${myCard.topPct?` · top ${myCard.topPct}% on MEDUSA`:''}. Which sea creature is yours?`;shareUrl=myCard.cardUrl;}
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,'_blank','noopener');
+ }
+ $('[data-referral-share]').addEventListener('click',shareStatus);
+ let myCard=null,myCardWallet=null;
+ function fmtCardUsd(n){const v=Math.abs(n);const b=v>=1e6?`${Number((v/1e6).toPrecision(3))}M`:v>=1e3?`${Number((v/1e3).toPrecision(3))}k`:`${Math.round(v)}`;return `${n<0?'-':''}$${b}`;}
+ function loadMyCard(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const wallet=gateData?.wallet||'',btn=$('[data-my-card]');
+  btn.disabled=!wallet;
+  if(!wallet||wallet===myCardWallet)return;
+  myCardWallet=wallet;myCard=null;
+  fetch(`/api/card?w=${wallet}&format=json`).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.address===wallet)myCard={...d,worthText:fmtCardUsd(d.worthUsd)};}).catch(()=>{});
+ }
+ $('[data-my-card]').addEventListener('click',()=>{if(myCardWallet)window.open(`/w/${myCardWallet}`,'_blank','noopener');});
+ // Wallet card reveal: opens the moment a wallet is submitted, runs a short
+ // three-line loader while /api/player + /api/card do the real work, then
+ // shows the card with Share. Only on a fresh link, never on a page reload.
+ const reveal=$('.mg-reveal');let revealPending=false,revealOpenedAt=0,revealTimers=[];
+ function openReveal(){
+  revealPending=true;revealOpenedAt=Date.now();
+  revealTimers.forEach(clearTimeout);revealTimers=[];
+  reveal.classList.remove('is-hidden','is-ready');
+  window.__mgFreeze=true; // the ocean's frame loop idles while the card is up - see frame()
+  $$('.mg-reveal-line').forEach((l,i)=>{l.classList.remove('is-on');revealTimers.push(setTimeout(()=>l.classList.add('is-on'),250+i*700));});
+ }
+ function closeReveal(){reveal.classList.add('is-hidden');window.__mgFreeze=false;revealPending=false;revealTimers.forEach(clearTimeout);revealTimers=[];}
+ async function finishReveal(wallet,bonus){
+  wallet=wallet||'';
+  try{
+   // the card must show on first connect (owner, 2026-09-27): GMGN or the renderer can
+   // hiccup once, so both the data and the PNG get three tries before giving up
+   const tries=async f=>{let e;for(let i=0;i<3;i++){try{return await f(i);}catch(x){e=x;await new Promise(r=>setTimeout(r,1200*(i+1)));}}throw e;};
+   const d=await tries(async()=>{const r=await fetch(`/api/card?w=${wallet}&format=json`);const j=r.ok?await r.json():null;if(!j||j.address!==wallet)throw new Error('no card');return j;});
+   myCard={...d,worthText:fmtCardUsd(d.worthUsd)};myCardWallet=wallet;$('[data-my-card]').disabled=false;
+   const src=await tries(i=>new Promise((res,rej)=>{const u=`/api/og?w=${wallet}&v=${d.cardV||1}${i?`&r=${i}`:''}`;const im=new Image();im.onload=()=>res(u);im.onerror=rej;im.src=u;}));
+   await new Promise(r=>setTimeout(r,Math.max(0,2500-(Date.now()-revealOpenedAt))));
+   if(!revealPending)return;
+   $('[data-reveal-title]').innerHTML=`Your wallet is a <b>${d.tier}</b>${d.character?` · ${d.character}`:''}`;
+   $('[data-reveal-sub]').textContent=`${d.topPct?`Top ${d.topPct}% on MEDUSA · `:''}${d.nextTier?`${fmtCardUsd(d.nextNeedUsd)} to ${d.nextTier}`:'apex of the food chain'} · ranked by what your wallet holds and earns.`;
+   $('.mg-reveal-img').src=src;
+   const b=$('[data-reveal-bonus]');b.hidden=!bonus;if(bonus)b.innerHTML=`<b>+${bonus.points.toLocaleString('en-US')}</b> starting points credited · ${bonus.label}`;
+   reveal.classList.add('is-ready');revealPending=false;
+  }catch{
+   closeReveal();
+   if(bonus)showGradeCreditPopup(bonus);
+  }
+ }
+ (function revealTilt(){
+  const t=$('.mg-reveal-tilt'),g=$('.mg-reveal-glare');
+  if(!t||!g||matchMedia('(prefers-reduced-motion: reduce)').matches||!matchMedia('(hover: hover)').matches)return;
+  const rest={rx:3,ry:-8,s:1,gx:50,gy:50,gl:0},cur={...rest};let tgt={...rest},raf=0;
+  const paint=()=>{t.style.transform=`perspective(1100px) rotateX(${cur.rx.toFixed(2)}deg) rotateY(${cur.ry.toFixed(2)}deg) scale(${cur.s.toFixed(4)})`;g.style.opacity=cur.gl.toFixed(3);g.style.setProperty('--gx',cur.gx.toFixed(1));g.style.setProperty('--gy',cur.gy.toFixed(1));};
+  const step=()=>{let d=0;for(const k in tgt){d+=Math.abs(tgt[k]-cur[k]);cur[k]+=(tgt[k]-cur[k])*.14;}paint();raf=d>.01?requestAnimationFrame(step):0;};
+  const kick=()=>{if(!raf)raf=requestAnimationFrame(step);};
+  t.addEventListener('pointermove',ev=>{const r=t.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width,y=(ev.clientY-r.top)/r.height;tgt={rx:(.5-y)*12,ry:(x-.5)*16,s:1.02,gx:x*100,gy:y*100,gl:1};kick();});
+  t.addEventListener('pointerleave',()=>{tgt={...rest};kick();});
+ })();
+ // "My card" in the top bar reopens the reveal for a linked wallet; the loader is
+ // skipped when the card is already known (the PNG is in the browser cache by then).
+ function openMyCard(){
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  const wallet=gateData?.wallet||'';
+  if(!wallet||!WALLET_RE.test(wallet)){openGate();return;}
+  openReveal();
+  if(myCard&&myCardWallet===wallet)revealOpenedAt-=2500;
+  finishReveal(wallet,null);
+ }
+ $('[data-v2-card]').addEventListener('click',openMyCard);
+ // Stale tabs. The game is one page that people leave open for hours; a deploy
+ // changes the file but a tab keeps yesterday's script (and then mixes it with
+ // fresh API answers). Every 5 minutes ask the server for the page's ETag; when it
+ // changes, reload quietly if nothing is in progress, otherwise offer a tap.
+ (function freshness(){
+  let known=null,offered=false;
+  const busy=()=>!!selected||revealPending||!gate.classList.contains('is-hidden')||!reveal.classList.contains('is-hidden');
+  async function check(){
+   try{
+    const r=await fetch(location.pathname+location.search,{method:'HEAD',cache:'no-store'});
+    const tag=r.headers.get('etag');if(!tag)return;
+    if(known===null){known=tag;return;}
+    if(tag===known)return;
+    if(!busy()&&document.hidden){location.reload();return;}
+    if(!offered){offered=true;const toast=$('.mg-toast');toast.textContent='MEDUSA updated · tap to reload';toast.classList.add('is-visible','is-sticky');toast.style.cursor='pointer';toast.onclick=()=>location.reload();}
+   }catch{}
+  }
+  setTimeout(check,15000);setInterval(check,300000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&offered&&!busy())location.reload();});
+ })();
+ $('.mg-reveal-close').addEventListener('click',closeReveal);
+ $('.mg-reveal-ok').addEventListener('click',closeReveal);
+ $('.mg-reveal-share').addEventListener('click',shareStatus);
+ // Download / Copy the card PNG the reveal is showing
+ (function(){
+  const dl=$('.mg-reveal-dl'),cp=$('.mg-reveal-cp');
+  const blob=()=>fetch($('.mg-reveal-img').getAttribute('src'),{cache:'force-cache'}).then(r=>{if(!r.ok)throw 0;return r.blob();});
+  const flash=(btn,text)=>{const old=btn.textContent;btn.textContent=text;btn.classList.add('is-done');setTimeout(()=>{btn.textContent=old;btn.classList.remove('is-done');},1600);};
+  dl.addEventListener('click',()=>{blob().then(b=>{const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`medusa-${(myCard?.tier||'card').toLowerCase()}-${(myCardWallet||'').slice(0,6)}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);flash(dl,'Saved');}).catch(()=>flash(dl,'Could not download'));});
+  cp.addEventListener('click',()=>{
+   if(!navigator.clipboard||!window.ClipboardItem){flash(cp,'Not supported here');return;}
+   let p;try{p=navigator.clipboard.write([new ClipboardItem({'image/png':blob()})]);}catch{p=blob().then(b=>navigator.clipboard.write([new ClipboardItem({'image/png':b})]));}
+   p.then(()=>flash(cp,'Copied')).catch(()=>flash(cp,'Not supported here'));
+  });
+ })();
+ reveal.addEventListener('click',e=>{if(e.target===reveal)closeReveal();});
+ (function healStaleGateData(){
+  if(!hasAccess())return;
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  if(!gateData?.wallet||!WALLET_RE.test(gateData.wallet)){try{localStorage.removeItem(gateKey);}catch{}}
+ })();
+ if(hasAccess()||hasSkipped())closeGate();else openGate();
+ if(hasAccess())loadPlayerProfile();
+ gateForm.addEventListener('input',()=>{updateGateSubmit();$('[data-gate-error]').hidden=true;});
+ gateForm.addEventListener('submit',e=>{
+  e.preventDefault();
+  const wallet=walletFromInput(gateForm.wallet.value),twitter=gateForm.twitter.value.trim();
+  if(!gateForm.wallet.value.trim())return;
+  if(!wallet){
+   const err=$('[data-gate-error]');err.textContent='Enter a Solana wallet address (base58, 32-44 characters) or paste your GMGN wallet link.';err.hidden=false;
+   return;
+  }
+  try{localStorage.setItem(gateKey,JSON.stringify({wallet,twitter,at:Date.now()}));}catch{}
+  resetLocalPlayerState();
+  closeGate();openReveal();
+  loadPlayerProfile();
+ });
+ $('[data-gate-value]').addEventListener('click',e=>{
+  e.preventDefault();
+  const wallet=walletFromInput(gateForm.wallet.value);
+  if(!wallet){const err=$('[data-gate-error]');err.textContent='Paste a wallet address or GMGN link above first.';err.hidden=false;return;}
+  window.open(`/w/${wallet}`,'_blank','noopener');
+ });
+ function dismissGate(){try{sessionStorage.setItem(gateSkipKey,'1');}catch{}closeGate();}
+ gateSkip.addEventListener('click',dismissGate);
+ gateClose.addEventListener('click',dismissGate);
+ gate.addEventListener('click',e=>{if(e.target===gate)dismissGate();});
+ $('.mg-referral-copy-btn').addEventListener('click',()=>{
+  const input=$('[data-referral-input]');
+  input.select();
+  navigator.clipboard?.writeText(input.value).then(()=>notify('Referral link copied')).catch(()=>{});
+ });
+
+ // A jellyfish's "already predicted" state is per-wallet, but it's stored on
+ // the shared, always-on-screen jellyfish objects — nothing else naturally
+ // clears it. Without this, switching wallets (logout or straight to a new
+ // connect) left the PREVIOUS wallet's locked/pending predictions visibly
+ // attached to the new one (wrong Locked Potential, wrongly-disabled buttons).
+ function resetLocalPlayerState(){
+  lastPlayerRow=null;walletBonus=0;
+  for(const jf of jellies){jf.prediction=null;jf.votes={up:0,down:0};}
+  updateUI();
+ }
+ function doLogout(){
+  try{localStorage.removeItem(gateKey);}catch{}
+  try{sessionStorage.removeItem(gateSkipKey);}catch{}
+  resetLocalPlayerState();
+  gateForm.reset();updateGateSubmit();updateV2Bar();
+  notify('Logged out · gate reset');
+ }
+ const LOCK_CLOSED_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><circle cx="12" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg>';
+ const LOCK_OPEN_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7a4 4 0 0 1 7.75-1.5"/><circle cx="12" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg>';
+ // the player's own X avatar in the top bar, same source as the leaderboard's
+ function mgxMyAvatar(gateData){
+  const btn=$('[data-v2-profile]');if(!btn)return;
+  const tw=(gateData?.twitter||'').replace(/^@/,'');
+  const tier=String(lastPlayerRow?.tier||'').toLowerCase();
+  const letter=(tw||(gateData?.wallet||'?')).replace(/[^a-z0-9]/gi,'').slice(0,1).toUpperCase()||'?';
+  let av=btn.querySelector('.mgx-av-me');
+  if(!av){av=document.createElement('span');av.className='mgx-av mgx-av-me';btn.prepend(av);}
+  const key=(tw||'-')+'|'+tier;
+  if(av.dataset.for===key)return;                       // only rebuild when the handle or tier changes
+  av.dataset.for=key;av.dataset.letter=letter;av.innerHTML='';
+  const creature=()=>{if(!tier)return;const c=new Image();c.className='is-creature';c.alt='';c.onerror=()=>c.remove();c.src=`/creatures/${tier}.png`;av.innerHTML='';av.append(c);};
+  if(tw){const img=new Image();img.loading='lazy';img.referrerPolicy='no-referrer';img.alt='';
+   img.onerror=()=>{img.remove();creature();};img.src='https://unavatar.io/x/'+encodeURIComponent(tw)+'?fallback=false';av.append(img);}
+  else creature();
+ }
+ // The centred status line and the right-side menu share one header; the menu's
+ // width depends on what is linked. Hide the status only when it would actually collide.
+ function fitTopBar(){
+  const st=root.querySelector('.mgx-status'),menu=$('.mg-v2-menu');
+  if(!st||!menu)return;
+  st.style.visibility='';
+  const a=st.getBoundingClientRect(),m=menu.getBoundingClientRect();
+  if(m.width&&a.width&&a.right>m.left-16)st.style.visibility='hidden';
+  const brand=root.querySelector('.mg-brand'),x=root.querySelector('.mg-v2-x');
+  if(brand&&x){const r=brand.getBoundingClientRect();x.style.left=Math.round(r.right+16)+'px';x.style.top=Math.round(r.top+r.height/2)+'px';}
+ }
+ window.addEventListener('resize',()=>requestAnimationFrame(fitTopBar));
+ function updateV2Bar(){
+  const connected=hasAccess();
+  let gateData=null;try{gateData=JSON.parse(localStorage.getItem(gateKey)||'null');}catch{}
+  $('[data-v2-connect]').hidden=connected;
+  $('[data-v2-profile]').hidden=!connected;
+  $('[data-v2-lock]').hidden=!connected;
+  $('[data-v2-mypreds]').hidden=!connected;
+  $('[data-v2-card]').hidden=!connected;
+  if(connected){
+   $('[data-v2-wallet]').textContent=gateData?.wallet?shortAddr(gateData.wallet):'';
+   mgxMyAvatar(gateData);
+   $('[data-v2-points]').textContent=lastPlayerRow?(lastPlayerRow.score||0).toLocaleString('en-US'):'…';
+   if(!$('[data-v2-profile]').classList.contains('is-analyzing'))$('[data-v2-tier]').textContent=lastPlayerRow?lastPlayerRow.tier:'…';
+   $('[data-v2-lock]').innerHTML=LOCK_OPEN_SVG;
+  }
+  $('[data-v2-rank]').textContent=$('[data-you-rank]').textContent;
+  requestAnimationFrame(fitTopBar);
+ }
+ $('[data-v2-connect]').addEventListener('click',openGate);
+ $('[data-v2-lock]').addEventListener('click',()=>{if(hasAccess())doLogout();else openGate();});
+ function closeSidePanels(){
+  root.classList.remove('v2-board-open','v2-referral-open','v2-preds-open');
+  $('[data-v2-board]').classList.remove('is-active');$('[data-v2-referral]').classList.remove('is-active');$('[data-v2-mypreds]').classList.remove('is-active');
+ }
+ function openLeaderboardBoard(){
+  const opening=!root.classList.contains('v2-board-open');
+  closeSidePanels();if(selected)closeJelly();
+  root.classList.toggle('v2-board-open',opening);
+  $('[data-v2-board]').classList.toggle('is-active',opening);
+ }
+ $('[data-v2-board]').addEventListener('click',openLeaderboardBoard);
+ $('[data-v2-profile]').addEventListener('click',openLeaderboardBoard);
+ // A click on empty ground closes whichever side panel is open (leaderboard, referral,
+ // predictions). Clicks inside the panels, the top bar, dialogs and overlays are left alone.
+ document.addEventListener('pointerdown',e=>{
+  if(!root.classList.contains('v2-board-open')&&!root.classList.contains('v2-referral-open')&&!root.classList.contains('v2-preds-open'))return;
+  if(e.target.closest('.mg-right-col,.mg-v2-menu,.mg-v2-wallet,.mg-gate,.mg-reveal,.mg-credit-popup,.mg-dialog,.mg-toast'))return;
+  closeSidePanels();
+ },true);
+ $('[data-v2-referral]').addEventListener('click',()=>{
+  const opening=!root.classList.contains('v2-referral-open');
+  closeSidePanels();if(selected)closeJelly();
+  root.classList.toggle('v2-referral-open',opening);
+  $('[data-v2-referral]').classList.toggle('is-active',opening);
+ });
+ $('[data-v2-mypreds]').addEventListener('click',()=>{
+  const opening=!root.classList.contains('v2-preds-open');
+  closeSidePanels();if(selected)closeJelly();
+  root.classList.toggle('v2-preds-open',opening);
+  $('[data-v2-mypreds]').classList.toggle('is-active',opening);
+  if(opening)refreshMyPredictions();
+ });
+ let idleTimer=null;
+ function resetIdleHint(){
+  const hint=$('.mg-v2-idle-hint');if(!hint)return;
+  hint.classList.remove('is-visible');
+  clearTimeout(idleTimer);
+  if(!selected){
+   idleTimer=setTimeout(()=>hint.classList.add('is-visible'),2200);
+  }
+ }
+ ocean.addEventListener('mousemove',resetIdleHint);
+ ocean.addEventListener('mouseleave',()=>{$('.mg-v2-idle-hint')?.classList.remove('is-visible');clearTimeout(idleTimer);});
+ resetIdleHint();
+ $('.mg-brand').addEventListener('click',e=>{e.preventDefault();if(selected)closeJelly();});
+ ocean.addEventListener('click',e=>{if(selected&&!dialog.contains(e.target)){cancelWalk();closeJelly();}});
+ root.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&selected){e.preventDefault();cancelWalk();closeJelly();}
+  if(e.key==='Tab'&&selected){const list=[...dialog.querySelectorAll('button:not([disabled])')].filter(b=>!b.closest('[hidden]'));const first=list[0],last=list.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
+ });
+ function frame(now){
+  const rawMs=last?now-last:16.7;const dt=Math.min(rawMs/1000||0,.05);last=now;
+  if(!document.hidden&&!window.__mgFreeze){
+   tuneDpr(now,Math.min(rawMs,100));
+   if(!reduceMotion)t+=dt;
+   focusAmount+=(Number(!!selected)-focusAmount)*(reduceMotion?1:1-Math.exp(-dt*4.4));
+   if(!selected&&focusAmount<.002){returning=null;focusAmount=0;}
+   updatePhysics(dt);draw();
+   const second=Math.floor(Date.now()/1000);if(second!==clockPrevious){clockPrevious=second;updateUI();}
+  }
+  raf=requestAnimationFrame(frame);
+ }
+ const observer=new ResizeObserver(layout);observer.observe(ocean);layout();updatePhysics(0);updateUI();draw();raf=requestAnimationFrame(frame);
+ if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:()=>{}});tweak.addSlider(options,'speed',{label:'Ocean drift',min:.2,max:1.6,step:.1});tweak.addSlider(options,'zoom',{label:'Selected jellyfish scale',min:.8,max:1.15,step:.05});tweak.addToggle(options,'showHints',{label:'Ocean hint'});}
+ window.addEventListener('pagehide',()=>{cancelAnimationFrame(raf);cancelWalk();observer.disconnect();clearTimeout(toastTimer);},{once:true});
+})();
+
+</script>
+
+<style id="mgx">
+/* ---------- v2 look: a framed "prediction ocean", after the concept recording ----------
+   Layout and type only. Every number still comes from the same script and selectors. */
+body.v2-full{background:#04070a}
+/* the frame: the height lives on the layout, since under 1100px it turns into a column
+   flex box and a flex item's own height is ignored there */
+#medusa-game.is-v2 .mg-layout{height:calc(100vh - 28px);margin:14px}
+#medusa-game.is-v2 .mg-shell{margin:0;height:auto;flex:1;min-height:0;border:1px solid #1c2823;border-radius:22px;
+  background:radial-gradient(ellipse at 50% 42%,#0f1d1766 0%,transparent 62%),linear-gradient(#070b0d,#05080a)}
+#medusa-game.is-v2 .mg-ocean{height:auto;min-height:0;max-height:none;flex:1;background:none}
+#medusa-game .mgx-status,#medusa-game .mgx-kicker,#medusa-game .mgx-eyebrow,#medusa-game .mgx-specimen span,#medusa-game .mgx-specimen em{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* top bar */
+#medusa-game .mgx-top{position:absolute;left:0;right:0;top:0;height:74px;border-bottom:1px solid #ffffff0f;z-index:3;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#medusa-game .mgx-status{font-size:11px;letter-spacing:2.2px;color:#c9d4cc}
+#medusa-game .mgx-status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--lime);margin-right:10px;vertical-align:2px;box-shadow:0 0 10px var(--lime)}
+#medusa-game .mgx-status em{font-style:normal;color:#56645c;margin:0 8px}
+#medusa-game .mgx-status b{font-weight:400;color:var(--lime)}
+#medusa-game.is-v2 .mg-brand{position:fixed;left:48px;top:51px;bottom:auto;transform:translateY(-50%);font-size:15px;letter-spacing:5px;opacity:1}
+#medusa-game.is-v2 .mg-brand-mark{display:none}          /* wordmark only, no circled M */
+#medusa-game.is-v2 .mg-brand{gap:0}
+#medusa-game.is-v2 .mg-brand::after{content:"THE PREDICTION OCEAN";margin-left:14px;padding-left:16px;border-left:1px solid #ffffff22;font-size:9px;letter-spacing:2px;color:#7f8f86}
+/* the two pills ride in the top bar, left of the wallet; the rank they carried is in the bottom bar */
+#medusa-game.is-v2 .mg-v2-menu{top:31px;bottom:auto;left:auto;right:calc(38px + var(--mgx-wallet,210px));transform:translateY(-50%);flex-direction:row;align-items:center;gap:8px;z-index:5}
+#medusa-game.is-v2 .mg-v2-menu-row{gap:8px}
+#medusa-game.is-v2 .mg-v2-menu .mg-v2-pill{width:auto}
+#medusa-game.is-v2 .mg-v2-menu .mg-v2-rank-outside{display:none}
+#medusa-game.is-v2 .mg-v2-wallet{top:31px;right:38px;transform:translateY(-50%);z-index:5}
+#medusa-game.is-v2 .mg-v2-wallet [data-v2-mypreds]{order:-1}   /* predictions first, the wallet last */
+#medusa-game.is-v2 .mg-v2-pill,#medusa-game.is-v2 .mg-v2-profile{background:#0b1210;border-color:#26322c;border-radius:12px;padding:10px 14px}
+#medusa-game.is-v2 .mg-v2-pill.is-active{background:var(--lime);color:#122000;border-color:var(--lime)}
+#medusa-game .mg-v2-pill.mg-v2-card,#medusa-game.is-v2 .mg-v2-pill.mg-v2-card{background:var(--lime);color:#122000;border-color:var(--lime);font-weight:700;letter-spacing:.3px;display:inline-flex;align-items:center;gap:7px;animation:mg-card-glow 2.6s ease-in-out infinite}
+#medusa-game .mg-v2-pill.mg-v2-card:hover{filter:brightness(1.08);transform:translateY(-1px)}
+@keyframes mg-card-glow{0%,100%{box-shadow:0 0 0 0 rgba(134,239,172,0)}50%{box-shadow:0 0 22px 2px rgba(134,239,172,.45)}}
+@media(prefers-reduced-motion:reduce){#medusa-game .mg-v2-pill.mg-v2-card{animation:none}}
+#medusa-game.is-v2 .mg-v2-connect-btn{border-radius:12px;padding:11px 18px}
+#medusa-game .mg-v2-idle-hint{display:none}
+
+/* idle hero, left */
+#medusa-game .mgx-hero{position:absolute;left:48px;top:118px;max-width:460px;z-index:3;pointer-events:none;transition:opacity .45s,transform .45s}
+#medusa-game .mgx-kicker{display:block;font-size:11px;letter-spacing:3px;color:#c9d4cc;margin-bottom:18px}
+#medusa-game .mgx-hero h1{margin:0;font-size:52px;line-height:1.02;letter-spacing:-2px;font-weight:500;color:#f2f6f2}
+/* the copy sits over the ocean, so it carries its own darkness */
+#medusa-game .mgx-hero,#medusa-game .mgx-specimen{text-shadow:0 0 18px #05080af2,0 0 46px #05080ae6}
+#medusa-game .mgx-hero h1 span{color:#8e9a93}
+#medusa-game .mgx-hero p{margin:22px 0 0;font-size:16px;line-height:1.65;color:#a9b5ad}
+#medusa-game .mgx-agent{display:inline-flex;align-items:center;gap:9px;margin-top:14px;padding:11px 18px;border:1px solid rgba(134,239,172,.4);border-radius:10px;font-size:15px;pointer-events:auto;position:relative;z-index:4;color:#c9d3cf;background:rgba(134,239,172,.06);text-decoration:none;cursor:pointer;transition:border-color .15s,background .15s}
+#medusa-game .mgx-agent:hover{border-color:var(--lime);background:rgba(134,239,172,.12)}
+#medusa-game .mgx-agent i{font-style:normal;color:var(--lime);margin-left:2px}
+#medusa-game .mgx-agent b{color:var(--lime);font-weight:600}
+#medusa-game .mgx-agent-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);animation:mg-reveal-pulse 1.6s ease-in-out infinite}
+#medusa-game[data-view="focus"] .mgx-hero{opacity:0;transform:translateY(-8px)}
+/* promo strip under the hero, filled by medusa.cash/launch.js when that file answers */
+#medusa-game .launch{margin-top:16px;pointer-events:auto;position:relative;z-index:4}
+#medusa-game .launch[hidden]{display:none}
+#medusa-game .ca{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--lime);border-radius:999px;background:#060b11;color:var(--lime);padding:7px 7px 7px 9px;cursor:pointer;text-align:left;font:inherit;box-shadow:0 0 22px rgba(134,239,172,.12);transition:box-shadow .2s}
+#medusa-game .ca:hover{box-shadow:0 0 30px rgba(134,239,172,.22)}
+#medusa-game .ca .tag{font-family:monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--lime);color:#172105;padding:7px 11px;border-radius:999px;white-space:nowrap}
+#medusa-game .ca code{font-family:monospace;font-size:13px;color:var(--lime);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#medusa-game .ca .cp{width:32px;height:32px;border-radius:50%;background:var(--lime);display:inline-flex;align-items:center;justify-content:center;flex:none;color:#172105}
+#medusa-game .ca .cp svg{width:14px;height:14px;fill:currentColor}
+#medusa-game .ca.copied .cp{background:#edf2f3}
+#medusa-game .doors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+#medusa-game .door{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;padding:11px 10px;font-size:13px;font-weight:600;border:1px solid #344138;color:#edf2f3;text-decoration:none;white-space:nowrap;transition:filter .15s,border-color .15s}
+#medusa-game .door i{font-style:normal;font-size:14px;line-height:1}
+#medusa-game .door:hover{filter:brightness(1.08);border-color:#4a5a4f}
+#medusa-game .door.lime{background:var(--lime);color:#172105;border-color:transparent}
+#medusa-game .door.fomo{background:linear-gradient(90deg,#3b1fd6,#6a3cff);color:#fff;border-color:transparent}
+#medusa-game .door.fomo .f{width:20px;height:20px;border-radius:50%;display:block;object-fit:cover;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+#medusa-game .door.dark{background:#0f1a17}
+
+/* selected specimen, left, only while a jellyfish is open */
+#medusa-game .mgx-specimen{position:absolute;left:48px;top:118px;z-index:3;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s}
+#medusa-game .mgx-specimen span,#medusa-game .mgx-specimen em{display:block;font-size:11px;letter-spacing:3px;color:#c9d4cc;font-style:normal}
+#medusa-game .mgx-specimen strong{display:block;font-size:54px;line-height:1;font-weight:500;letter-spacing:-1px;color:#f2f6f2;margin:14px 0 18px}
+#medusa-game[data-view="focus"] .mgx-specimen{opacity:1;transform:none}
+
+/* jellyfish cards */
+#medusa-game.is-v2 .mg-jelly-label{min-width:200px;padding:15px 17px 13px;border:1px solid #2c3a31;border-radius:12px;background:#0a110ed9;backdrop-filter:blur(4px);box-shadow:0 18px 50px #0006}
+#medusa-game.is-v2 .mg-jelly-label.is-claimed{border-color:#4d6a2a;background:#0f170cf0}
+#medusa-game.is-v2 .mg-label-head{font-size:17px;align-items:baseline}
+#medusa-game.is-v2 .mg-label-head b{font-weight:500;letter-spacing:.3px}
+#medusa-game.is-v2 .mg-label-head [data-label-state]{font-size:9px;letter-spacing:1.4px}
+#medusa-game.is-v2 .mg-label-line{font-size:11px;margin-top:9px;color:#9aa89f}
+#medusa-game .mgx-label-start{display:none}   /* the round's start price stays in the card, not on the jellyfish */
+#medusa-game .mgx-label-start-off{display:flex;justify-content:space-between;gap:14px;margin-top:11px;padding-top:10px;border-top:1px solid #ffffff12;font-family:monospace;font-size:11px;color:#7f8f86;letter-spacing:.6px}
+#medusa-game .mgx-label-start b{color:#dfe7e0;font-weight:400}
+
+/* decision card */
+#medusa-game.is-v2 .mg-dialog{top:98px;right:32px;width:372px;max-height:calc(100vh - 250px);overflow:auto;padding:24px 24px 20px;background:#0b1210f7;border:1px solid #27352d;border-radius:18px;box-shadow:0 40px 90px #000a}
+#medusa-game.is-v2 .mg-dialog-top{padding-right:30px}
+#medusa-game.is-v2 .mg-round-state{font-size:8px;letter-spacing:1.4px;padding:5px 9px}
+#medusa-game.is-v2 .mg-close{top:14px;right:14px}
+/* leaderboard avatars */
+#medusa-game .mgx-av{position:relative;flex:none;width:28px;height:28px;border-radius:50%;overflow:hidden;background:#16211b;border:1px solid #2c3a31;
+  display:grid;place-items:center;font-family:monospace;font-size:11px;color:#8fa196}
+#medusa-game .mgx-av::before{content:attr(data-letter)}
+#medusa-game .mgx-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#16211b}
+#medusa-game .mgx-av img.is-creature{object-fit:contain;transform:scale(1.35);background:radial-gradient(circle,rgba(134,239,172,.16) 0%,rgba(134,239,172,0) 70%),#0a1310}
+#medusa-game .mgx-av svg{position:absolute;inset:0;width:100%;height:100%}
+#medusa-game .mgx-av-me{width:22px;height:22px;font-size:9px;margin-right:9px;margin-left:-4px}
+#medusa-game .mg-leader-row.rank-1 .mgx-av{border-color:#d4af3788}
+#medusa-game .mg-leader-row.rank-2 .mgx-av{border-color:#c0c0c077}
+#medusa-game .mg-leader-row.rank-3 .mgx-av{border-color:#cd7f3277}
+#medusa-game .mgx-eyebrow{font-size:9px;letter-spacing:2.4px;color:#8c9c92;margin:4px 0 10px}
+#medusa-game.is-v2 .mg-dialog h2#mg-question{font-size:31px;line-height:1.08;letter-spacing:-.8px;font-weight:500;margin:0}
+#medusa-game .mgx-next{margin:10px 0 18px;font-size:13px;color:#a9b5ad}
+#medusa-game .mgx-next b{color:#f2f6f2;font-weight:500}
+#medusa-game.is-v2 .mg-price-row{align-items:flex-end;margin-bottom:16px}
+#medusa-game.is-v2 .mg-price-row b{font-size:15px}
+#medusa-game .mgx-chart-toggle{font:inherit;font-size:10px;letter-spacing:1px;color:#b7c4bb;background:none;border:1px solid #2f3d34;border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+#medusa-game .mgx-chart-toggle:hover{border-color:var(--lime);color:var(--lime)}
+#medusa-game .mg-dialog:not(.chart-open) .mg-chart{display:none!important}
+#medusa-game.is-v2 .mg-chart{height:260px}
+#medusa-game.is-v2 .mg-reward{background:#141d15;border:1px solid #1f2b21;border-bottom:0}
+#medusa-game .mgx-note{margin:10px 0 0;font-size:10.5px;color:#8c9c92}
+#medusa-game.is-v2 .mg-choices{margin-top:18px;gap:10px}
+#medusa-game.is-v2 .mg-choices button{font-size:13px;letter-spacing:2px;font-weight:500;padding:17px 10px;border-radius:9px;gap:12px}
+#medusa-game.is-v2 .mg-choices button i{font-style:normal;font-size:20px;line-height:1}
+#medusa-game.is-v2 .mg-down{color:#dfe7e0;background:#0f1613;border:1px solid #33413a}
+#medusa-game.is-v2 .mg-down:hover{border-color:#6c7a72}
+#medusa-game .mgx-foot{margin:14px 0 0;text-align:center;font-size:10px;line-height:1.6;color:#76857c}
+
+/* bottom bar */
+#medusa-game .mgx-bottom{position:absolute;left:0;right:0;bottom:0;height:108px;z-index:3;display:grid;grid-template-columns:1.25fr 1fr 1fr;
+  border-top:1px solid #ffffff0f;background:linear-gradient(#05080a00,#05080ae6 30%)}
+#medusa-game .mgx-cell{display:flex;align-items:center;padding:0 36px;border-left:1px solid #ffffff0f;min-width:0}
+#medusa-game .mgx-cell:first-child{border-left:0}
+#medusa-game .mgx-bottom .mg-progress{width:100%;gap:18px}
+#medusa-game .mgx-bottom .mg-role-icon{flex:none;width:46px;height:46px;border:1px solid #2f3d34;border-radius:50%;display:grid;place-items:center;color:#dfe7e0;font-size:18px}
+#medusa-game .mgx-bottom .mg-progress-body{flex:1;min-width:0}
+#medusa-game .mgx-bottom .mg-progress-body>div:first-child{display:flex;justify-content:space-between;gap:10px}
+#medusa-game .mgx-bottom .mg-progress-body span,#medusa-game .mgx-bottom .mg-stat>span,#medusa-game .mgx-bottom .mg-leaderboard-you span{font-family:monospace;font-size:9.5px;letter-spacing:1.6px;color:#8c9c92}
+#medusa-game .mgx-bottom .mg-progress-body b{font-family:monospace;font-size:10px;letter-spacing:1.4px;font-weight:400;color:#dfe7e0}
+#medusa-game .mgx-bottom .mg-meter{height:3px;margin:12px 0 9px;background:#1b2621;border-radius:2px}
+#medusa-game .mgx-bottom .mg-meter>span{background:#b9c7a0}
+#medusa-game .mgx-bottom .mg-progress-body>small{display:flex;justify-content:space-between;font-family:monospace;font-size:10px;color:#b8c4bc}
+#medusa-game .mgx-bottom .mg-stat{display:flex;flex-direction:column;gap:6px}
+#medusa-game .mgx-bottom .mg-stat strong{font-size:30px;font-weight:400;color:var(--lime);line-height:1}
+#medusa-game .mgx-bottom .mg-stat strong small{font-size:11px;letter-spacing:1px;color:#b8c4bc;margin-left:6px}
+#medusa-game .mgx-bottom .mg-stat>small{font-size:11px;color:#8c9c92}
+#medusa-game .mgx-bottom .mg-leaderboard-you{width:100%;border:0;padding:0;justify-content:flex-start;gap:48px}
+#medusa-game .mgx-bottom .mg-leaderboard-you div{gap:8px}
+#medusa-game .mgx-bottom .mg-leaderboard-you div:last-child{align-items:flex-start}
+#medusa-game .mgx-bottom .mg-leaderboard-you strong{font-size:30px;line-height:1}
+
+/* short screens: a phone held sideways, or a small laptop window */
+@media(max-height:620px){
+  #medusa-game.is-v2 .mg-layout{height:calc(100vh - 16px);margin:8px}
+  #medusa-game.is-v2 .mg-shell{border-radius:16px}
+  #medusa-game .mgx-top{height:52px}
+  #medusa-game .mgx-status{font-size:9px;letter-spacing:1.4px}
+  #medusa-game.is-v2 .mg-brand{left:22px;top:26px;font-size:11px;letter-spacing:3px}
+  #medusa-game.is-v2 .mg-brand::after{display:none}
+  #medusa-game.is-v2 .mg-v2-menu{top:26px;right:calc(22px + var(--mgx-wallet,180px))}
+  #medusa-game.is-v2 .mg-v2-wallet{top:26px;right:22px}
+  #medusa-game.is-v2 .mg-v2-pill,#medusa-game.is-v2 .mg-v2-profile,#medusa-game.is-v2 .mg-v2-connect-btn{font-size:9px;padding:7px 10px;border-radius:9px}
+  #medusa-game.is-v2 .mgx-av-me{width:16px;height:16px;font-size:8px;margin-right:6px}
+  #medusa-game .mgx-hero{top:70px;max-width:300px}
+  #medusa-game .mgx-kicker{font-size:8px;letter-spacing:2px;margin-bottom:8px}
+  #medusa-game .mgx-hero h1{font-size:27px;letter-spacing:-1px}
+  #medusa-game .mgx-hero p{font-size:11px;margin-top:8px;line-height:1.5}
+  #medusa-game .mgx-specimen{top:70px}
+  #medusa-game .mgx-specimen strong{font-size:30px;margin:8px 0 10px}
+  #medusa-game .mgx-specimen span,#medusa-game .mgx-specimen em{font-size:8px;letter-spacing:2px}
+  #medusa-game .mgx-bottom{height:66px}
+  #medusa-game .mgx-cell{padding:0 16px}
+  #medusa-game .mgx-bottom .mg-role-icon{display:none}
+  #medusa-game .mgx-bottom .mg-progress-body span,#medusa-game .mgx-bottom .mg-stat>span,#medusa-game .mgx-bottom .mg-leaderboard-you span{font-size:8px;letter-spacing:1.2px}
+  #medusa-game .mgx-bottom .mg-meter{margin:7px 0 5px}
+  #medusa-game .mgx-bottom .mg-progress-body>small{font-size:9px}
+  #medusa-game .mgx-bottom .mg-stat strong,#medusa-game .mgx-bottom .mg-leaderboard-you strong{font-size:18px}
+  #medusa-game .mgx-bottom .mg-stat>small{font-size:9px}
+  #medusa-game .mgx-bottom .mg-leaderboard-you{gap:20px}
+  #medusa-game.is-v2 .mg-jelly-label{min-width:120px;padding:8px 10px;border-radius:9px}
+  #medusa-game.is-v2 .mg-label-head{font-size:12px}
+  #medusa-game.is-v2 .mg-label-line{font-size:9px;margin-top:5px}
+  #medusa-game .mgx-status{display:none}                 /* the pills need the room */
+  #medusa-game.is-v2 .mg-dialog{top:60px;bottom:74px;right:16px;width:300px;padding:16px;max-height:none;overflow:auto}
+  #medusa-game.is-v2 .mg-dialog h2#mg-question{font-size:21px}
+  #medusa-game .mgx-next{margin:6px 0 10px;font-size:11px}
+  #medusa-game.is-v2 .mg-choices button{font-size:11px;padding:12px 8px}
+  #medusa-game.is-v2 .mg-chart{height:190px}
+}
+
+/* phones */
+@media(max-width:760px){
+  #medusa-game.is-v2 .mg-layout{height:calc(100vh - 16px);margin:8px}
+  #medusa-game.is-v2 .mg-shell{border-radius:16px}
+  #medusa-game .mgx-top{height:60px;align-items:flex-end;padding-bottom:8px}
+  #medusa-game .mgx-status{font-size:9px;letter-spacing:1.4px}
+  #medusa-game.is-v2 .mg-brand{left:24px;top:30px;font-size:12px;letter-spacing:3px}
+  #medusa-game.is-v2 .mg-brand::after{display:none}
+  #medusa-game.is-v2 .mg-v2-menu{top:auto;bottom:100px;left:18px;right:auto;transform:none}
+  #medusa-game.is-v2 .mg-v2-wallet{top:26px;right:16px}
+  #medusa-game .mgx-hero{left:22px;right:22px;top:84px}
+  #medusa-game .mgx-hero h1{font-size:34px}
+  #medusa-game .mgx-kicker{font-size:9px;margin-bottom:10px}
+  #medusa-game .mgx-hero p{font-size:13px;margin-top:10px}
+  #medusa-game .mgx-specimen{display:none}
+  #medusa-game .mgx-bottom{height:84px}
+  #medusa-game .mgx-cell{padding:0 12px}
+  #medusa-game .mgx-bottom .mg-role-icon,#medusa-game .mgx-bottom .mg-progress-body>small span{display:none}
+  #medusa-game .mgx-bottom .mg-stat strong,#medusa-game .mgx-bottom .mg-leaderboard-you strong{font-size:20px}
+  #medusa-game .mgx-bottom .mg-stat>small{display:none}
+  #medusa-game .mgx-bottom .mg-leaderboard-you{gap:14px}
+  #medusa-game.is-v2 .mg-dialog{max-height:none}
+  #medusa-game.is-v2 .mg-jelly-label{min-width:140px;padding:10px 12px}
+  #medusa-game .mgx-label-start{display:none}
+}
+</style>
+<script>(function(){var local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname),s=document.createElement("script");s.src=local?"/launch.js":"https://medusa.cash/launch.js";s.onload=function(){var L=window.LAUNCH;if(L&&typeof L.mount==="function"){L.mount(document.getElementById("launch"),document.querySelector(".mgx-agent"));window.dispatchEvent(new Event("resize"));}};document.body.appendChild(s);})();</script>
+</body></html>

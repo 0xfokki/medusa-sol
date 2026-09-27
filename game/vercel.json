@@ -1,0 +1,37 @@
+{
+  "redirects": [
+    {
+      "source": "/play",
+      "destination": "/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/v2",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/w",
+      "destination": "/api/card"
+    },
+    {
+      "source": "/w/:wallet",
+      "destination": "/api/card?w=:wallet"
+    },
+    {
+      "source": "/r",
+      "destination": "/api/read"
+    }
+  ],
+  "functions": {
+    "api/og.js": {
+      "memory": 1024,
+      "maxDuration": 15
+    },
+    "api/read-og.js": {
+      "memory": 1024,
+      "maxDuration": 15
+    }
+  }
+}
