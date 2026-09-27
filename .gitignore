@@ -13,3 +13,4 @@ api.html
 scripts/build-api.mjs
 .helius-key
 .sol-cache.json
+launch-preview.js
