@@ -1486,7 +1486,7 @@ body.v2-full #medusa-game{max-width:none}
     const sorted=(Array.isArray(pairs)?pairs:[]).sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0));
     chartPairs[addr]=sorted[0]?.pairAddress||null;
     // the same answer carries the token's logo; the glyph stays when there is none
-    coinLogos[addr]=sorted.find(p=>p.info?.imageUrl)?.info.imageUrl||null;
+    coinLogos[addr]=DARK_LOGOS.has(addr)?null:(sorted.find(p=>p.info?.imageUrl)?.info.imageUrl||null);   // UI v3: a near-black logo shows the letter
    }
   }catch{chartPairs[addr]=null;}
   if(chartShown!==addr)return;               // another jellyfish was opened meanwhile
@@ -1518,6 +1518,9 @@ body.v2-full #medusa-game{max-width:none}
  // UI v3 2026-10-07: each card carries its coin's logo and how far the price has moved since its round
  // began - one DexScreener call for every coin on screen, again each minute
  const coinNow={};
+ // logos that are near-black and vanish on a dark card (measured 2026-10-07: Fartcoin, GOAT) - their coins
+ // show the mint letter instead (the CDN sends no CORS header, so the page cannot measure a logo itself)
+ const DARK_LOGOS=new Set(['9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump','CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump']);
  async function refreshCoinCards(){
   const addrs=[...new Set(jellies.map(j=>j.asset&&j.asset.isReal&&j.asset.address).filter(Boolean))];
   if(!addrs.length)return;
@@ -1525,7 +1528,7 @@ body.v2-full #medusa-game{max-width:none}
    const r=await fetch('https://api.dexscreener.com/tokens/v1/solana/'+addrs.join(','));
    const pairs=r.ok?await r.json():[],best={};
    for(const p of Array.isArray(pairs)?pairs:[]){const a=p.baseToken&&p.baseToken.address;if(a&&(!best[a]||(p.liquidity?.usd||0)>(best[a].liquidity?.usd||0)))best[a]=p;}
-   for(const a of addrs){const p=best[a];if(!p)continue;if(!coinLogos[a])coinLogos[a]=p.info?.imageUrl||null;coinNow[a]=Number(p.priceUsd)||null;}
+   for(const a of addrs){const p=best[a];if(!p)continue;if(!coinLogos[a]&&!DARK_LOGOS.has(a))coinLogos[a]=p.info?.imageUrl||null;coinNow[a]=Number(p.priceUsd)||null;}
   }catch{}
   paintCoinCards();
  }
@@ -2265,6 +2268,8 @@ html,body{background:#070908}
 #medusa-game.is-v2 .mg-v2-pill:hover,#medusa-game.is-v2 .mg-v2-profile:hover{background:rgba(134,239,172,.06);box-shadow:inset 0 0 0 1px rgba(134,239,172,.45)}
 #medusa-game.is-v2 .mg-v2-pill[data-v2-referral]{color:var(--mint)}
 #medusa-game.is-v2 .mg-v2-pill.is-active{background:var(--mint);color:var(--mint-ink);box-shadow:none}
+/* My card is a filled pill with dark text: the pill hover above would swap its fill for the faint one and the words vanish */
+#medusa-game.is-v2 .mg-v2-pill.mg-v2-card:hover{background:var(--lime)}
 #medusa-game.is-v2 .mg-v2-connect-btn{font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.01em;border:0;border-radius:999px;padding:10px 20px;color:var(--mint-ink);
   background:linear-gradient(180deg,#a7f3c4,#86efac 55%,#6fe39a);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 0 1px rgba(134,239,172,.4),0 10px 30px -8px rgba(134,239,172,.6)}
 #medusa-game.is-v2 .mg-v2-connect-btn:hover{filter:brightness(1.06)}
