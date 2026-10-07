@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><title>MEDUSA - Make your call</title><meta name="description" content="Six jellyfish, six Solana memecoins. Call UP or DOWN before the round ends and climb the leaderboard."><style>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet"><title>MEDUSA - Make your call</title><meta name="description" content="Six jellyfish, six Solana memecoins. Call UP or DOWN before the round ends and climb the leaderboard."><style>
 html,body{margin:0;background:#04080d}
 body{padding:20px}
 #medusa-game{max-width:1600px;margin:auto}
@@ -512,7 +512,104 @@ body.v2-full #medusa-game{max-width:none}
 <script>
 (() => {
  const root=document.getElementById('medusa-game');
- const ocean=root.querySelector('.mg-ocean'), canvas=root.querySelector('.mg-canvas'), ctx=canvas.getContext('2d');
+ // UI v3 2026-10-07 (owner: "как плавают медузы очень лагающий"): the ocean drawn on the GPU. The
+ // jellyfish still work out every dot, glow and thread in their own code; this stands in for the 2D
+ // context and, instead of ~18k drawImage blits a frame on the CPU, gathers them and draws them in
+ // two instanced calls (threads, then dots and glows). Without WebGL2 the plain 2D context is used.
+ function oceanContext(canvas){
+  let gl=null;
+  if(/[?&]gl=0/.test(location.search))return canvas.getContext('2d');   // ?gl=0: the old CPU drawing, to compare
+  try{gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,depth:false,stencil:false,powerPreference:'high-performance'});}catch{gl=null;}
+  if(!gl)return canvas.getContext('2d');
+  const QUAD=new Float32Array([-1,-1,1,-1,-1,1,1,1]);
+  const SPRITE_VS=`#version 300 es
+  layout(location=0) in vec2 aQ; layout(location=1) in vec4 aA; layout(location=2) in vec4 aB;
+  uniform vec2 uRes; out vec2 vUv; out vec4 vCol; out float vKind;
+  void main(){ vec2 p=aA.xy+aQ*aA.z; vUv=aQ; vCol=vec4(aB.rgb,aA.w); vKind=aB.w;
+   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.); }`;
+  // a dot: a disc at 15/16 of its box, soft at the edge; a glow: the old texture's radial stops, blurred
+  const SPRITE_FS=`#version 300 es
+  precision mediump float; in vec2 vUv; in vec4 vCol; in float vKind; out vec4 o;
+  void main(){ float d=length(vUv),a;
+   if(vKind<.5){ float w=max(fwidth(d),.06); a=1.-smoothstep(.94-w,.94+w,d); }
+   else { a=d<.22?mix(.86,.52,d/.22):d<.55?mix(.52,.14,(d-.22)/.33):mix(.14,0.,clamp((d-.55)/.45,0.,1.)); a*=smoothstep(1.,.8,d); }
+   a*=vCol.a; o=vec4(vCol.rgb*a,a); }`;
+  const LINE_VS=`#version 300 es
+  layout(location=0) in vec2 aQ; layout(location=1) in vec4 aP; layout(location=2) in vec4 aC; layout(location=3) in float aW;
+  uniform vec2 uRes; out vec4 vCol;
+  void main(){ vec2 d=aP.zw-aP.xy; float L=max(length(d),1e-4); vec2 n=vec2(-d.y,d.x)/L;
+   vec2 p=aP.xy+d*(aQ.x*.5+.5)+n*aQ.y*(aW*.5+.5);
+   vCol=vec4(aC.rgb,aC.a*aW/(aW+.6)); gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.); }`;
+  const LINE_FS=`#version 300 es
+  precision mediump float; in vec4 vCol; out vec4 o; void main(){ o=vec4(vCol.rgb*vCol.a,vCol.a); }`;
+  let sp,lp,quadBuf,spriteBuf,lineBuf,spriteVao,lineVao,uResS,uResL;
+  const program=(vs,fs)=>{const p=gl.createProgram();for(const [t,src] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);gl.attachShader(p,s);}gl.linkProgram(p);return p;};
+  function init(){
+   sp=program(SPRITE_VS,SPRITE_FS);lp=program(LINE_VS,LINE_FS);uResS=gl.getUniformLocation(sp,'uRes');uResL=gl.getUniformLocation(lp,'uRes');
+   quadBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);gl.bufferData(gl.ARRAY_BUFFER,QUAD,gl.STATIC_DRAW);
+   spriteBuf=gl.createBuffer();lineBuf=gl.createBuffer();
+   spriteVao=gl.createVertexArray();gl.bindVertexArray(spriteVao);
+   gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+   gl.bindBuffer(gl.ARRAY_BUFFER,spriteBuf);
+   gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,32,0);gl.vertexAttribDivisor(1,1);
+   gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,4,gl.FLOAT,false,32,16);gl.vertexAttribDivisor(2,1);
+   lineVao=gl.createVertexArray();gl.bindVertexArray(lineVao);
+   gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+   gl.bindBuffer(gl.ARRAY_BUFFER,lineBuf);
+   gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.FLOAT,false,36,0);gl.vertexAttribDivisor(1,1);
+   gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,4,gl.FLOAT,false,36,16);gl.vertexAttribDivisor(2,1);
+   gl.enableVertexAttribArray(3);gl.vertexAttribPointer(3,1,gl.FLOAT,false,36,32);gl.vertexAttribDivisor(3,1);
+   gl.bindVertexArray(null);
+  }
+  init();
+  let lost=false;
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});
+  canvas.addEventListener('webglcontextrestored',()=>{lost=false;init();});
+  let S=new Float32Array(8*24000),sn=0,L=new Float32Array(9*12000),ln=0;
+  const grow=(arr,need)=>{if(need<=arr.length)return arr;const b=new Float32Array(Math.max(need,arr.length*2));b.set(arr);return b;};
+  // the 2D transform: [a,b,c,d,e,f] like the canvas, with a stack for save/restore
+  let m=[1,0,0,1,0,0];const stack=[];
+  const strokeCache=new Map();
+  const parse=s=>{let v=strokeCache.get(s);if(!v){const k=s.slice(s.indexOf('(')+1,s.lastIndexOf(')')).split(',').map(Number);v=[k[0]/255,k[1]/255,k[2]/255,k.length>3?k[3]:1];if(strokeCache.size>4000)strokeCache.clear();strokeCache.set(s,v);}return v;};
+  let px=0,py=0,hasMove=false;
+  const shim={
+   canvas,globalAlpha:1,strokeStyle:'rgba(0,0,0,1)',lineWidth:1,
+   setTransform(a,b,c,d,e,f){m=[a,b,c,d,e,f];},
+   save(){stack.push(m.slice());},
+   restore(){if(stack.length)m=stack.pop();},
+   translate(x,y){m[4]+=m[0]*x+m[2]*y;m[5]+=m[1]*x+m[3]*y;},
+   scale(x,y){m[0]*=x;m[1]*=x;m[2]*=y;m[3]*=y;},
+   rotate(r){const c=Math.cos(r),s=Math.sin(r),a=m[0],b=m[1],cc=m[2],d=m[3];m[0]=a*c+cc*s;m[1]=b*c+d*s;m[2]=-a*s+cc*c;m[3]=-b*s+d*c;},
+   clearRect(){sn=0;ln=0;},
+   drawImage(img,x,y,w,h){
+    const col=img._col;if(!col)return;
+    const al=this.globalAlpha;if(al<=0)return;
+    const cx=x+w/2,cy=y+h/2,sc=Math.hypot(m[0],m[1]);
+    if(sn+8>S.length)S=grow(S,sn+8);
+    S[sn]=m[0]*cx+m[2]*cy+m[4];S[sn+1]=m[1]*cx+m[3]*cy+m[5];S[sn+2]=w/2*sc;S[sn+3]=Math.min(1,al);
+    S[sn+4]=col[0];S[sn+5]=col[1];S[sn+6]=col[2];S[sn+7]=img._k;sn+=8;
+   },
+   beginPath(){hasMove=false;},
+   moveTo(x,y){px=m[0]*x+m[2]*y+m[4];py=m[1]*x+m[3]*y+m[5];hasMove=true;},
+   lineTo(x,y){
+    const qx=m[0]*x+m[2]*y+m[4],qy=m[1]*x+m[3]*y+m[5];
+    if(hasMove){const c=parse(this.strokeStyle),al=c[3]*this.globalAlpha;if(al>0){if(ln+9>L.length)L=grow(L,ln+9);
+     L[ln]=px;L[ln+1]=py;L[ln+2]=qx;L[ln+3]=qy;L[ln+4]=c[0];L[ln+5]=c[1];L[ln+6]=c[2];L[ln+7]=al;L[ln+8]=this.lineWidth*Math.hypot(m[0],m[1]);ln+=9;}}
+    px=qx;py=qy;hasMove=true;
+   },
+   stroke(){},
+   flush(){
+    if(lost)return;
+    gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    if(ln){gl.useProgram(lp);gl.uniform2f(uResL,canvas.width,canvas.height);gl.bindBuffer(gl.ARRAY_BUFFER,lineBuf);gl.bufferData(gl.ARRAY_BUFFER,L.subarray(0,ln),gl.STREAM_DRAW);gl.bindVertexArray(lineVao);gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,ln/9);}
+    if(sn){gl.useProgram(sp);gl.uniform2f(uResS,canvas.width,canvas.height);gl.bindBuffer(gl.ARRAY_BUFFER,spriteBuf);gl.bufferData(gl.ARRAY_BUFFER,S.subarray(0,sn),gl.STREAM_DRAW);gl.bindVertexArray(spriteVao);gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,sn/8);}
+    gl.bindVertexArray(null);sn=0;ln=0;
+   }
+  };
+  return shim;
+ }
+ const ocean=root.querySelector('.mg-ocean'), canvas=root.querySelector('.mg-canvas'), ctx=oceanContext(canvas);
  const $=s=>root.querySelector(s), $$=s=>[...root.querySelectorAll(s)];
  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const TAU=Math.PI*2;
@@ -520,7 +617,7 @@ body.v2-full #medusa-game{max-width:none}
 
  let renderOpacity=1;
  const textures={};
- for(const [name,rgb] of Object.entries({white:'233,239,241',lime:'199,250,0',pink:'255,60,190',cyan:'80,220,255',purple:'190,100,255',orange:'255,150,40'})){
+ for(const [name,rgb] of Object.entries({white:'206,246,224',lime:'134,239,172',pink:'74,222,128',cyan:'94,234,212',purple:'187,247,208',orange:'110,231,183'})){
    const size=64,mid=size/2;
    const c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d');
    const grad=g.createRadialGradient(mid,mid,0,mid,mid,mid);
@@ -528,16 +625,16 @@ body.v2-full #medusa-game{max-width:none}
    g.fillStyle=grad;g.fillRect(0,0,size,size);
    const blurred=document.createElement('canvas');blurred.width=blurred.height=size;
    const bg=blurred.getContext('2d');bg.filter='blur(5px)';bg.drawImage(c,0,0);
-   textures[name]=blurred;
+   blurred._col=rgb.split(',').map(v=>v/255);blurred._k=1;textures[name]=blurred;
  }
 
  const JELLY_PALETTES=[
-   {spark:[199,255,0],glow:'lime',tint:'199,250,0',bright:'207,255,57'},
-   {spark:[255,45,180],glow:'pink',tint:'255,60,190',bright:'255,140,220'},
-   {spark:[45,220,255],glow:'cyan',tint:'60,210,255',bright:'150,240,255'},
-   {spark:[190,70,255],glow:'purple',tint:'190,90,255',bright:'225,160,255'},
-   {spark:[225,230,235],glow:'white',tint:'205,211,218',bright:'246,248,250'},
-   {spark:[255,140,20],glow:'orange',tint:'255,150,40',bright:'255,195,110'},
+   {spark:[134,239,172],glow:'lime',tint:'134,239,172',bright:'205,252,224'},     // UI v3: her mint family
+   {spark:[74,222,128],glow:'pink',tint:'86,224,140',bright:'170,246,200'},        // emerald
+   {spark:[94,234,212],glow:'cyan',tint:'94,226,205',bright:'172,246,233'},        // seafoam
+   {spark:[187,247,208],glow:'purple',tint:'176,240,201',bright:'228,253,238'},    // pale mint
+   {spark:[200,245,222],glow:'white',tint:'184,238,208',bright:'232,252,240'},     // mint-white
+   {spark:[110,231,183],glow:'orange',tint:'110,222,172',bright:'182,246,216'},    // jade
  ];
  function palette(jf){return JELLY_PALETTES[jf.paletteIndex%JELLY_PALETTES.length];}
  // A dot is a pre-rendered disc blitted with drawImage: thousands of beginPath/arc/fill
@@ -545,7 +642,7 @@ body.v2-full #medusa-game{max-width:none}
  const dotSprites=new Map();
  function dotSprite(rgb){
   let c=dotSprites.get(rgb);
-  if(!c){c=document.createElement('canvas');c.width=c.height=32;const g=c.getContext('2d');g.fillStyle=`rgb(${rgb})`;g.beginPath();g.arc(16,16,15,0,TAU);g.fill();dotSprites.set(rgb,c);}
+  if(!c){c=document.createElement('canvas');c.width=c.height=32;const g=c.getContext('2d');g.fillStyle=`rgb(${rgb})`;g.beginPath();g.arc(16,16,15,0,TAU);g.fill();c._col=rgb.split(',').map(v=>v/255);c._k=0;dotSprites.set(rgb,c);}
   return c;
  }
  function dot(x,y,r,a,rgb='224,233,250'){
@@ -713,8 +810,8 @@ body.v2-full #medusa-game{max-width:none}
  // which is what a 2.5k-wide window at 1.15x costs). If frames still run long for three
  // solid seconds it steps down once or twice (1.0, then .75) and never back up: every
  // resize re-creates the canvas, and hopping between levels reads as blinking.
- const MAX_CANVAS_PX=3.2e6,DOWN_STEPS=[1,.75];
- let dprCap=1.5,downIdx=0,frameEma=16.7,slowSince=0,dprChangedAt=0;
+ const MAX_CANVAS_PX=ctx.flush?8.3e6:3.2e6,DOWN_STEPS=[1,.75];   // UI v3: GPU dots, a sharper canvas
+ let dprCap=ctx.flush?2:1.5,downIdx=0,frameEma=16.7,slowSince=0,dprChangedAt=0;
  function applyDpr(){
   const areaCap=Math.sqrt(MAX_CANVAS_PX/Math.max(1,vw*vh));
   dpr=Math.max(.5,Math.min(window.devicePixelRatio||1,dprCap,areaCap));
@@ -1143,6 +1240,8 @@ body.v2-full #medusa-game{max-width:none}
  for(const jf of jellies){
   const hit=document.createElement('button');hit.type='button';hit.className='mg-hit cursor-interaction';hit.setAttribute('aria-label',`Open ${jf.asset.name} prediction`);
   const label=document.createElement('button');label.type='button';label.className='mg-jelly-label cursor-interaction';label.title=jf.asset.name;label.innerHTML=`<span class="mg-label-head"><b>${jf.asset.symbol}</b><span data-label-state>UP OR DOWN?</span></span><span class="mg-label-line"><span data-label-time></span><b data-label-points></b></span><span class="mgx-label-start"><span>START</span><b data-label-start></b></span>`;
+  label.insertAdjacentHTML('afterbegin','<span class="mgx-logo" data-label-logo aria-hidden="true"></span>');
+  label.querySelector('.mg-label-line').insertAdjacentHTML('afterbegin','<span class="mgx-move" data-label-move></span>');
   const pal=palette(jf);
   label.style.setProperty('--jelly-border',`rgba(${pal.tint},.67)`);
   label.style.setProperty('--jelly-shadow',`rgba(${pal.tint},.16)`);
@@ -1279,7 +1378,8 @@ body.v2-full #medusa-game{max-width:none}
    }
   }
  }
- function draw(){
+ function draw(){drawOcean();if(ctx.flush)ctx.flush();}   // UI v3: one GPU flush a frame
+ function drawOcean(){
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,vw,vh);
   if(viewMode==='solo'){
    for(const p of stars)dot(p.u*vw,(p.v*vh-t*1.6+vh*100)%vh,p.s,.06+.12*(1+Math.sin(t*.6+p.phase))/2,'145,177,171');
@@ -1326,9 +1426,9 @@ body.v2-full #medusa-game{max-width:none}
    jf.label.style.pointerEvents=interactive?'auto':'none';
    const r=140*original.scale,rHit=170*original.scale;
    jf.hit.style.transform=`translate(${original.x-rHit}px,${original.y-rHit}px)`;jf.hit.style.width=`${rHit*2}px`;jf.hit.style.height=`${rHit*2}px`;
-   const labelW=mobile?128:142,labelH=58;
+   const labelW=mobile?176:252,labelH=62;   // UI v3: cards with a logo and the move
    jf.label.style.width=`${labelW}px`;
-   const sizeRatio=Math.max(.5,Math.min(1,original.scale/.6));
+   const sizeRatio=Math.max(.8,Math.min(1,original.scale/.6));   // UI v3: never below 80%, the text stays readable
    let lx=original.x-labelW/2,ly=original.y+r*.9-labelH/2;
    lx=Math.max(14,Math.min(vw-labelW-16,lx));ly=Math.max(mobile?216:72,Math.min(vh-labelH-25,ly));
    const labelPosition=project(lx,ly,background?1+amount*.22:1);
@@ -1415,8 +1515,40 @@ body.v2-full #medusa-game{max-width:none}
   refreshMyPredictions();
   refreshVoteStats();
  }
+ // UI v3 2026-10-07: each card carries its coin's logo and how far the price has moved since its round
+ // began - one DexScreener call for every coin on screen, again each minute
+ const coinNow={};
+ async function refreshCoinCards(){
+  const addrs=[...new Set(jellies.map(j=>j.asset&&j.asset.isReal&&j.asset.address).filter(Boolean))];
+  if(!addrs.length)return;
+  try{
+   const r=await fetch('https://api.dexscreener.com/tokens/v1/solana/'+addrs.join(','));
+   const pairs=r.ok?await r.json():[],best={};
+   for(const p of Array.isArray(pairs)?pairs:[]){const a=p.baseToken&&p.baseToken.address;if(a&&(!best[a]||(p.liquidity?.usd||0)>(best[a].liquidity?.usd||0)))best[a]=p;}
+   for(const a of addrs){const p=best[a];if(!p)continue;if(!coinLogos[a])coinLogos[a]=p.info?.imageUrl||null;coinNow[a]=Number(p.priceUsd)||null;}
+  }catch{}
+  paintCoinCards();
+ }
+ function paintCoinCards(){
+  for(const j of jellies){
+   if(!j.label||!j.asset)continue;
+   const a=j.asset.address,logo=j.label.querySelector('[data-label-logo]'),mv=j.label.querySelector('[data-label-move]');
+   if(logo&&logo.dataset.key!==a+'|'+(coinLogos[a]||'')){
+    logo.dataset.key=a+'|'+(coinLogos[a]||'');
+    logo.textContent=String(j.asset.coin||j.asset.symbol||'?').slice(0,1);
+    if(coinLogos[a]){const im=new Image();im.alt='';im.referrerPolicy='no-referrer';im.onload=()=>{logo.textContent='';logo.append(im);};im.src=coinLogos[a];}
+   }
+   if(mv){
+    const now=j.asset.isReal?coinNow[a]:null,start=j.asset.start;
+    if(now&&start){const pct=(now-start)/start*100,up=pct>=0;mv.textContent=(up?'▲ ':'▼ ')+Math.abs(pct).toFixed(Math.abs(pct)<10?1:0)+'%';mv.className='mgx-move '+(up?'up':'dn');mv.title='Since this round began';}
+    else{mv.textContent='';mv.className='mgx-move';}
+   }
+  }
+ }
+ setTimeout(refreshCoinCards,600);setInterval(refreshCoinCards,60000);
  function notify(text){const toast=$('.mg-toast');if(toast.classList.contains('is-sticky'))return;toast.textContent=text;toast.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2800);}
  function updateUI(){
+  paintCoinCards();
   let locked=0,count=0;
   for(const j of jellies){
    const sec=remaining(j),mins=points(j),p=j.prediction;
@@ -1425,7 +1557,7 @@ body.v2-full #medusa-game{max-width:none}
    j.label.querySelector('[data-label-time]').textContent=`${mins}m ${String(sec%60).padStart(2,'0')}s left`;
    j.label.querySelector('[data-label-start]').textContent=money(j.asset.start);
    j.label.querySelector('[data-label-points]').textContent=p?`${p.points} pts locked`:`${mins} pts`;
-   j.label.querySelector('[data-label-state]').textContent=p?`${p.direction==='up'?'↗':'↘'} CLAIMED`:sec<60?'CLOSING':'UP OR DOWN?';
+   j.label.querySelector('[data-label-state]').textContent=p?`${p.direction==='up'?'↗':'↘'} CLAIMED`:sec<60?'CLOSING':'';   // UI v3: a state only when there is one
    j.label.classList.toggle('is-claimed',!!p);
    j.label.setAttribute('aria-label',`${j.asset.name}, ${mins} minutes left, ${p?`${p.points} points locked, ${p.direction}, view prediction`:`${mins} available points, open prediction`}`);
    if(p){locked+=p.points;count++;}
@@ -2116,4 +2248,66 @@ body.v2-full{background:#04070a}
 }
 </style>
 <script>(function(){var local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname),s=document.createElement("script");s.src=local?"/launch.js":"https://medusa.cash/launch.js";s.onload=function(){var L=window.LAUNCH;if(L&&typeof L.mount==="function"){L.mount(document.getElementById("launch"),document.querySelector(".mgx-agent"));window.dispatchEvent(new Event("resize"));}};document.body.appendChild(s);})();</script>
+<style id="mgx-v3">
+/* ================= UI v3 2026-10-07: the game in the site's language ================= */
+#medusa-game{--lime:#86efac;--mint:#86efac;--mint-ink:#06170d;--bone:#e8edf4;--mist:#8b9bb0;--dim:#7b8ca3;
+  --hair:rgba(226,240,232,.075);--hair2:rgba(226,240,232,.13);--hair3:rgba(226,240,232,.22);
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:"DM Mono",ui-monospace,Consolas,monospace;--display:"Archivo","Arial Narrow",sans-serif;
+  --bg:#070908;font-family:var(--sans)}
+html,body{background:#070908}
+#medusa-game.is-v2 .mg-shell{background:radial-gradient(55% 60% at 72% 40%,rgba(134,239,172,.055),transparent 70%),radial-gradient(40% 40% at 10% 0%,rgba(134,239,172,.035),transparent 70%),#070908;border:0;box-shadow:inset 0 0 0 1px var(--hair2)}
+#medusa-game .mg-brand{font-family:var(--sans);font-weight:500;letter-spacing:.32em}
+/* the top: status in mono, pills of glass, the wallet button in her mint */
+#medusa-game .mgx-top{border-bottom:1px solid var(--hair)}
+#medusa-game .mgx-status{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--mist)}
+#medusa-game .mgx-status b{color:var(--mint);font-weight:500}
+#medusa-game.is-v2 .mg-v2-pill,#medusa-game.is-v2 .mg-v2-profile{font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:0;color:var(--bone);border:0;border-radius:999px;padding:9px 16px;background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px var(--hair2);transition:box-shadow .25s,background .25s}
+#medusa-game.is-v2 .mg-v2-pill:hover,#medusa-game.is-v2 .mg-v2-profile:hover{background:rgba(134,239,172,.06);box-shadow:inset 0 0 0 1px rgba(134,239,172,.45)}
+#medusa-game.is-v2 .mg-v2-pill[data-v2-referral]{color:var(--mint)}
+#medusa-game.is-v2 .mg-v2-pill.is-active{background:var(--mint);color:var(--mint-ink);box-shadow:none}
+#medusa-game.is-v2 .mg-v2-connect-btn{font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.01em;border:0;border-radius:999px;padding:10px 20px;color:var(--mint-ink);
+  background:linear-gradient(180deg,#a7f3c4,#86efac 55%,#6fe39a);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 0 1px rgba(134,239,172,.4),0 10px 30px -8px rgba(134,239,172,.6)}
+#medusa-game.is-v2 .mg-v2-connect-btn:hover{filter:brightness(1.06)}
+/* the hero, in the site's type */
+#medusa-game .mgx-kicker{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--mint);margin-bottom:20px}
+#medusa-game .mgx-hero h1{font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:clamp(46px,4.6vw,72px);line-height:.9;letter-spacing:-.005em;color:#f2f6f4}
+#medusa-game .mgx-hero h1 span{display:inline-block;color:transparent;background:linear-gradient(180deg,#d4fce3 0%,#8af0b0 55%,#5ed991 100%);-webkit-background-clip:text;background-clip:text;text-shadow:none;filter:drop-shadow(0 0 18px rgba(5,8,10,.9))}
+#medusa-game .mgx-hero p{font-family:var(--sans);font-weight:300;font-size:16px;line-height:1.6;color:var(--mist);margin-top:20px}
+#medusa-game .mgx-agent{font-family:var(--sans);font-size:14px;font-weight:400;border:0;border-radius:999px;padding:10px 18px;margin-top:22px;color:var(--bone);background:rgba(134,239,172,.06);box-shadow:inset 0 0 0 1px rgba(134,239,172,.38);backdrop-filter:blur(6px)}
+#medusa-game .mgx-agent:hover{background:rgba(134,239,172,.12);box-shadow:inset 0 0 0 1px var(--mint)}
+#medusa-game .mgx-agent b{font-weight:600}
+#medusa-game .mgx-specimen span,#medusa-game .mgx-specimen em{font-family:var(--mono);letter-spacing:.22em;color:var(--mint)}
+#medusa-game .mgx-specimen strong{font-family:var(--display);font-weight:800;font-stretch:64%;text-transform:uppercase;font-size:clamp(52px,5vw,80px);letter-spacing:-.005em;line-height:.9}
+/* the coin cards: glass, the logo, the name, the move since the round began, time and points */
+#medusa-game .mg-labels{z-index:2}   /* over the jellyfish (the canvas takes no clicks), so no tentacle runs across a card's text */
+#medusa-game.is-v2 .mg-jelly-label{display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:12px;align-items:center;padding:11px 14px 11px 11px;border:0;border-radius:18px;text-align:left;font-family:var(--sans);
+  background:rgba(10,14,12,.92);backdrop-filter:blur(12px) saturate(1.25);-webkit-backdrop-filter:blur(12px) saturate(1.25);
+  box-shadow:inset 0 0 0 1px var(--hair2),inset 0 1px 0 rgba(255,255,255,.05),0 18px 44px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+#medusa-game.is-v2 .mg-jelly-label:hover,#medusa-game.is-v2 .mg-jelly-label:focus-visible{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(134,239,172,.5),0 18px 44px rgba(0,0,0,.5),0 0 34px -8px rgba(134,239,172,.5)}
+#medusa-game.is-v2 .mg-jelly-label.is-claimed{background:rgba(14,26,19,.8);box-shadow:inset 0 0 0 1px rgba(134,239,172,.55),0 18px 44px rgba(0,0,0,.45)}
+#medusa-game .mgx-logo{grid-row:1 / span 2;width:36px;height:36px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#0c110f;box-shadow:inset 0 0 0 1px var(--hair2);font-family:var(--display);font-weight:800;font-stretch:64%;font-size:17px;color:var(--mint)}
+#medusa-game .mgx-logo img{width:100%;height:100%;object-fit:cover;display:block}
+#medusa-game.is-v2 .mg-label-head{font-size:15px;gap:10px;align-items:baseline;min-width:0}
+#medusa-game.is-v2 .mg-label-head b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#medusa-game.is-v2 .mg-label-head b{font-weight:600;letter-spacing:.01em;color:var(--bone)}
+#medusa-game.is-v2 .mg-label-head [data-label-state]{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--dim)}
+#medusa-game.is-v2 .mg-jelly-label.is-claimed [data-label-state]{color:var(--mint)}
+#medusa-game.is-v2 .mg-label-line{margin-top:5px;gap:10px;flex-wrap:nowrap;white-space:nowrap;font-family:var(--mono);font-size:10.5px;color:var(--mist)}
+#medusa-game.is-v2 .mg-label-line b{color:var(--mint);font-weight:500}
+#medusa-game .mgx-move{font-weight:500}
+#medusa-game.is-v2 .mg-label-head [data-label-state]:empty{display:none}
+#medusa-game .mgx-move:empty{display:none}
+#medusa-game .mgx-move.up{color:var(--mint)} #medusa-game .mgx-move.dn{color:#b7c2cc}
+/* the bottom: one glass strip, labels in mono, numbers in the display face */
+#medusa-game .mgx-bottom{border-top:1px solid var(--hair);background:linear-gradient(180deg,rgba(9,12,10,.4),rgba(9,12,10,.82));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#medusa-game .mgx-cell{border-left-color:var(--hair)}
+#medusa-game .mgx-bottom .mg-progress-body span,#medusa-game .mgx-bottom .mg-stat>span,#medusa-game .mgx-bottom .mg-leaderboard-you span{font-family:var(--mono);letter-spacing:.18em;color:var(--dim)}
+#medusa-game .mgx-bottom .mg-progress-body b{font-family:var(--mono);letter-spacing:.14em;color:var(--bone)}
+#medusa-game .mgx-bottom .mg-meter{height:4px;border-radius:2px;background:rgba(255,255,255,.07)}
+#medusa-game .mgx-bottom .mg-meter>span{background:linear-gradient(90deg,#4fd286,#8af0b0);box-shadow:0 0 12px rgba(134,239,172,.45)}
+#medusa-game .mgx-bottom .mg-role-icon{border:0;box-shadow:inset 0 0 0 1px var(--hair2);color:var(--mint)}
+#medusa-game .mgx-bottom .mg-stat strong,#medusa-game .mgx-bottom .mg-leaderboard-you strong{font-family:var(--display);font-weight:800;font-stretch:64%;font-size:38px;color:var(--mint);font-variant-numeric:tabular-nums}
+#medusa-game .mgx-bottom .mg-stat strong small{font-family:var(--mono);font-weight:400;font-size:11px}
+#medusa-game .mgx-bottom .mg-progress-body>small,#medusa-game .mgx-bottom .mg-stat>small{font-family:var(--mono);color:var(--mist)}
+</style>
 </body></html>
